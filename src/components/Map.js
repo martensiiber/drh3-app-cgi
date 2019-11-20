@@ -18,7 +18,9 @@ class Map extends React.Component {
             + '+lat_0=57.51755393055556 +lon_0=24 +x_0=500000 +y_0=6375000 +ellps=GRS80 '
             + '+towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
         register(proj4);
+    }
 
+    componentDidMount() {
         this.view = new View({
             center: [541932, 6589304],
             zoom: 12,
@@ -26,9 +28,7 @@ class Map extends React.Component {
             maxZoom: 28,
             projection: getProjection('EPSG:3301')
         });
-    }
 
-    componentDidMount() {
         this.map = new olMap({
             view: this.view,
             controls: [],
