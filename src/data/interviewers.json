@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1,
+    "name": "Test Interviewer 1",
+    "selected": true,
+    "coordinates": [543193.170937, 6588443.222498],
+    "area": [
+      [539666.15, 6588813.32],
+      [540996.38, 6586512.09],
+      [544339.16, 6587425.26],
+      [545728.84, 6588570.10],
+      [542223.14, 6590163.24],
+      [539666.15, 6588813.32]
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Test Interviewer 2",
+    "selected": false,
+    "coordinates": [553193.170937, 6588443.222498],
+    "area": []
+  },
+  {
+    "id": 3,
+    "name": "Test Interviewer 3",
+    "selected": false,
+    "coordinates": [553193.170937, 6590443.222498],
+    "area": []
+  },
+  {
+    "id": 4,
+    "name": "Test Interviewer 4",
+    "selected": false,
+    "coordinates": [533193.170937, 6582443.222498],
+    "area": []
+  },
+  {
+    "id": 5,
+    "name": "Test Interviewer 5",
+    "selected": false,
+    "coordinates": [535193.170937, 6578443.222498],
+    "area": []
+  },
+  {
+    "id": 6,
+    "name": "Test Interviewer 6",
+    "selected": false,
+    "coordinates": [546193.170937, 6574443.222498],
+    "area": []
+  },
+  {
+    "id": 7,
+    "name": "Test Interviewer 7",
+    "selected": true,
+    "coordinates": [547193.170937, 6593443.222498],
+    "area": []
+  },
+  {
+    "id": 8,
+    "name": "Test Interviewer 8",
+    "selected": true,
+    "coordinates": [545193.170937, 6589443.222498],
+    "area": []
+  }
+]

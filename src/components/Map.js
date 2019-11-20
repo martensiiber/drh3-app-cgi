@@ -3,12 +3,39 @@ import React from 'react';
 import View from 'ol/View';
 import { get as getProjection } from 'ol/proj';
 import olMap from 'ol/Map';
-import Tile from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
+import TileLayer from 'ol/layer/Tile';
+import Feature from 'ol/Feature';
+import Point from 'ol/geom/Point';
+import Polygon from 'ol/geom/Polygon';
+import VectorLayer from 'ol/layer/Vector';
+import OSMSource from 'ol/source/OSM';
+import VectorSource from 'ol/source/Vector';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4';
+import MapStyles from '../MapStyles';
 
 require('ol/ol.css');
+
+const getInterviewersCoordinates = (interviewers) => {
+    return interviewers
+        .filter(interviewer => interviewer.selected)
+        .map(interviewer => {
+            const feature = new Feature(new Point(interviewer.coordinates));
+            feature.setId(interviewer.id);
+            return feature;
+        });
+};
+
+const getInterviewersAreas = (interviewers) => {
+    return interviewers
+        .filter(interviewer => interviewer.selected)
+        .map(interviewer => {
+            const feature = new Feature(new Polygon([interviewer.area]));
+            feature.setId(interviewer.id);
+            return feature;
+        })
+}
+
 
 class Map extends React.Component {
     constructor(props) {
@@ -21,6 +48,23 @@ class Map extends React.Component {
     }
 
     componentDidMount() {
+        const interviewerCoordinates = getInterviewersCoordinates(this.props.interviewers);
+
+        this.interviewersLayer = new VectorLayer({
+            source: new VectorSource({
+                features: interviewerCoordinates
+            }),
+            style: MapStyles.interviewersStyle,
+        });
+
+        const interviewerAreas = getInterviewersAreas(this.props.interviewers);
+        this.interviewerAreas = new VectorLayer({
+            source: new VectorSource({
+                features: interviewerAreas
+            }),
+            style: MapStyles.interviewerAreaStyle,
+        });
+
         this.view = new View({
             center: [541932, 6589304],
             zoom: 12,
@@ -33,12 +77,28 @@ class Map extends React.Component {
             view: this.view,
             controls: [],
             layers: [
-                new Tile({
-                    source: new OSM()
-                })
+                new TileLayer({
+                    source: new OSMSource(),
+                }),
+                this.interviewersLayer,
+                this.interviewerAreas,
             ],
             target: this.refs.mapContainer
         });
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.interviewers !== this.props.interviewers) {
+            const interviewerCoordinates = getInterviewersCoordinates(this.props.interviewers);
+            const interviewerAreas = getInterviewersAreas(this.props.interviewers);
+            this.interviewersLayer.setSource(new VectorSource({
+                features: interviewerCoordinates
+            }));
+
+            this.interviewerAreas.setSource(new VectorSource({
+                features: interviewerAreas
+            }))
+        }
     }
 
     render() {
