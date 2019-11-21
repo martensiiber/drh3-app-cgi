@@ -90,7 +90,8 @@ class Map extends React.Component {
             + '+towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
         register(proj4);
         this.overlay = null;
-        this.content = React.createRef();
+        this.popupHeader = React.createRef();
+        this.popupBody = React.createRef();
         this.popup = React.createRef();
         this.closer = React.createRef();
         this.select = null;
@@ -200,7 +201,8 @@ class Map extends React.Component {
         });
 
         const localOverlay = this.overlay;
-        let content = this.content;
+        const popupHeader = this.popupHeader;
+        const popupBody = this.popupBody;
 
         if (this.select !== null) {
             this.map.addInteraction(this.select);
@@ -211,7 +213,28 @@ class Map extends React.Component {
                     const featureId = feature.getId();
                     const selectedInterviewer = interviewers.find(int => int.id === featureId);
 
-                    content.current.innerHTML = `id: ${selectedInterviewer.id}<br> name: ${selectedInterviewer.name}`;
+                    popupHeader.current.innerHTML = selectedInterviewer.name;
+                    popupBody.current.innerHTML = `
+                        <tr>
+                            <td>Jaoskonna nr</td>
+                            <td>${selectedInterviewer.id}</td>
+                        </tr>
+                        <tr>
+                            <td>Objekte</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>Prognoositud läbisõit</td>
+                            <td>45 km</td>
+                        </tr>
+                        <tr>
+                            <td>Kütusekulu</td>
+                            <td>23 L</td>
+                        </tr>
+                        <tr>
+                            <td>Küsitleja alguspunkt</td>
+                            <td>Liblika tn 123</td>
+                        </tr>`;
 
                     localOverlay.setPosition(selectedInterviewer.coordinates);
                 }
@@ -254,7 +277,11 @@ class Map extends React.Component {
                 <div id="map" ref="mapContainer"></div>
                 <div id="popup" className="ol-popup" ref={this.popup}>
                     <a href="#" id="popup-closer" className="ol-popup-closer" ref={this.closer}></a>
-                    <div id="popup-content" ref={this.content}></div>
+                    <div id="popup-content">
+                        <div id="popup-header" ref={this.popupHeader}></div>
+                        <hr/>
+                        <table id="popup-body" ref={this.popupBody} cellSpacing="5px"></table>
+                    </div>
                 </div>
             </React.Fragment>
         );
