@@ -6,3 +6,8 @@
 .interviewers-slider-label {
     margin-bottom: 40px !important;
 }
+
+.interviewers-list {
+    max-height: calc(100vh - 101px);
+    overflow: auto;
+}
