@@ -60,14 +60,12 @@ class Map extends React.Component {
             + '+lat_0=57.51755393055556 +lon_0=24 +x_0=500000 +y_0=6375000 +ellps=GRS80 '
             + '+towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
         register(proj4);
-        // this.popup = React.createRef();
         this.overlay = null;
-        // this.container = React.createRef();
         this.content = React.createRef();
-        // this.closer = React.createRef();
+        this.popup = React.createRef();
+        this.closer = React.createRef();
         this.select = null;
         this.map = null;
-
     }
 
     componentDidMount() {
@@ -107,7 +105,7 @@ class Map extends React.Component {
         });
 
         this.overlay = new Overlay({
-            element: this.refs.popup,
+            element: this.popup.current,
             autoPan: true,
             autoPanAnimation: {
                 duration: 250
@@ -129,13 +127,15 @@ class Map extends React.Component {
             target: this.refs.mapContainer
         });
 
+        let localOverlay = this.overlay;
+        let localCloser = this.closer.current;
 
-
-        // this.map.addOverlay(this.overlay);
-
-        // console.log(this.props);
-
-        // this.changeInteraction(this.props.interviewers);
+        localCloser.onclick = function() {
+            console.log(this);
+            localOverlay.setPosition(undefined);
+            localCloser.blur();
+            return false;
+        };
     }
 
     changeInteraction = (interviewers) => {
@@ -156,13 +156,11 @@ class Map extends React.Component {
             this.select.on('select', function(e) {
                 const feature = e.selected[0];
 
-
                 if(!!feature) {
                     const featureId = feature.getId();
                     const selectedInterviewer = interviewers.find(int => int.id === featureId);
-                    // let element = localOverlay.element;
 
-                    content.current.innerHTML = '<p>test</p>';
+                    content.current.innerHTML = `id: ${selectedInterviewer.id}<br> name: ${selectedInterviewer.name}`;
 
                     localOverlay.setPosition(selectedInterviewer.coordinates);
                 }
@@ -199,7 +197,7 @@ class Map extends React.Component {
             <React.Fragment>
                 <div id="map" ref="mapContainer"></div>
                 <div id="popup" className="ol-popup" ref={this.popup}>
-                    <a href="#" id="popup-closer" className="ol-popup-closer"></a>
+                    <a href="#" id="popup-closer" className="ol-popup-closer" ref={this.closer}></a>
                     <div id="popup-content" ref={this.content}></div>
                 </div>
             </React.Fragment>
