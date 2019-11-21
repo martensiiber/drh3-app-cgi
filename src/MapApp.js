@@ -2,25 +2,20 @@ import React from 'react';
 import Grid from '@material-ui/core/Grid';
 import MapSettings from "./components/MapSettings";
 import Map from "./components/Map";
+import interviewers from './data/interviewers.json';
+import addresses from './data/addresses.json';
 import cloneDeep from "lodash-es/cloneDeep";
+
 
 class MapApp extends React.Component{
     constructor(props) {
         super(props);
 
         this.state = {
-            interviewersDefault: [
-                { id: 1, name: "Test Interviewer 1", selected: false },
-                { id: 2, name: "Test Interviewer 2", selected: false },
-                { id: 3, name: "Test Interviewer 3", selected: false },
-                { id: 4, name: "Test Interviewer 4", selected: false },
-                { id: 5, name: "Test Interviewer 5", selected: false },
-                { id: 6, name: "Test Interviewer 6", selected: false },
-                { id: 7, name: "Test Interviewer 7", selected: false },
-                { id: 8, name: "Test Interviewer 8", selected: false },
-            ],
+            interviewersDefault: interviewers,
             interviewers: [],
-            interviewersAmount: 30
+            interviewersAmount: 30,
+            addresses
         }
     }
 
@@ -30,7 +25,7 @@ class MapApp extends React.Component{
             interviewers: cloneDeep(this.state.interviewersDefault)
         }))
     }
-    
+
     handleSliderChange = (event, newValue) => {
         let interviewers = this.getLimitedRandomElements(this.state.interviewersDefault, newValue);
         interviewers.forEach(int => int.selected = false);
@@ -70,7 +65,10 @@ class MapApp extends React.Component{
                         />
                     </Grid>
                     <Grid item container xs={8}>
-                        <Map/>
+                        <Map
+                            interviewers={this.state.interviewers}
+                            addresses={this.state.addresses}
+                        />
                     </Grid>
                 </Grid>
             </div>
