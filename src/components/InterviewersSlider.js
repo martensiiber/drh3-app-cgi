@@ -6,10 +6,22 @@ import Grid from '@material-ui/core/Grid';
 class InterviewersSlider extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            sliderAmount: 0
+        }
     }
 
+    componentDidMount() {
+        this.setState({ sliderAmount: this.props.maxInterviewers })
+    }
+
+    handleChange = (event, newValue) => {
+        this.setState( {sliderAmount: newValue});
+    };
+
     render() {
-        const { interviewersAmount, handleSliderChange, maxInterviewers } = this.props;
+        const { handleSliderChange, maxInterviewers } = this.props;
+        const { sliderAmount } = this.state;
 
         return (
             <div className="interviewers-slider">
@@ -22,8 +34,9 @@ class InterviewersSlider extends React.Component {
                             valueLabelDisplay="on"
                             step={1}
                             max={maxInterviewers}
-                            value={typeof interviewersAmount === 'number' ? interviewersAmount : 0}
-                            onChange={handleSliderChange}
+                            value={typeof sliderAmount === 'number' ? sliderAmount : 0}
+                            onChange={this.handleChange}
+                            onChangeCommitted={handleSliderChange}
                             aria-labelledby="input-slider"
                         />
                     </Grid>

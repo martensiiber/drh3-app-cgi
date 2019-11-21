@@ -21,7 +21,7 @@ const MapSettings = ({
                 interviewersAmount={interviewersAmount}
                 maxInterviewers={maxInterviewers}
             />
-            <List>
+            <List className="interviewers-list">
                 {
                     interviewers.map((interviewer) => {
                         const labelId = `checkbox-list-label-${interviewer.id}`;
