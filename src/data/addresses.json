@@ -12,7 +12,7 @@
   {
     "id": 3,
     "address": "Test address 3",
-    "coordinates": [543393.170937, 6589143.222498]
+    "coordinates": [542393.170937, 6589143.222498]
   },
   {
     "id": 4,
@@ -28,5 +28,10 @@
     "id": 6,
     "address": "Test address 6",
     "coordinates": [540693.170937, 6588443.222498]
+  },
+  {
+    "id": 7,
+    "address": "Test address 7",
+    "coordinates": [543693.170937, 6586443.222498]
   }
 ]
