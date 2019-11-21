@@ -35,8 +35,9 @@ const getInterviewersCoordinates = (interviewers) => {
         });
 };
 
-const getAddressCoordinates = (addresses) => {
+const getAddressCoordinates = (addresses, isVisited) => {
     return addresses
+        .filter(address => address.isVisited === isVisited)
         .map(address => {
             const feature = new Feature(new Point(address.coordinates));
             feature.setId(address.id);
@@ -128,12 +129,21 @@ class Map extends React.Component {
         });
 
         // Addresses coordinates layer
-        const addressCoordinates = getAddressCoordinates(this.props.addresses);
-        this.addressesLayer = new WebGLPointsLayer({
+        const incompleteAddressCoordinates = getAddressCoordinates(this.props.addresses, false);
+        this.incompleteAddressesLayer = new WebGLPointsLayer({
             source: new VectorSource({
-                features: addressCoordinates
+                features: incompleteAddressCoordinates
             }),
-            style: MapStyles.addressStyle,
+            style: MapStyles.incompleteAddressStyle,
+            disableHitDetection: false
+        });
+
+        const completeAddressCoordinates = getAddressCoordinates(this.props.addresses, true);
+        this.completeAddressesLayer = new WebGLPointsLayer({
+            source: new VectorSource({
+                features: completeAddressCoordinates
+            }),
+            style: MapStyles.completeAddressStyle,
             disableHitDetection: false
         });
 
@@ -160,8 +170,9 @@ class Map extends React.Component {
                 new TileLayer({
                     source: new OSMSource(),
                 }),
+                this.incompleteAddressesLayer,
+                this.completeAddressesLayer,
                 this.areasLayer,
-                this.addressesLayer,
                 this.interviewersLayer,
             ],
             overlays: [this.overlay],
