@@ -19,7 +19,7 @@ import { register } from 'ol/proj/proj4';
 import MapStyles from '../MapStyles';
 import { toLonLat, fromLonLat } from 'ol/proj';
 import * as concaveman from 'concaveman';
-import cloneDeep from 'lodash/cloneDeep';
+import cloneDeep from "lodash-es/cloneDeep";
 
 import 'ol/ol.css';
 
@@ -113,7 +113,7 @@ class Map extends React.Component {
         });
 
         // Interviewers areas layer
-        const interviewerAreas = addressedInterviewers.map((interviewer) => {
+        const interviewerAreas = this.props.interviewers.map((interviewer) => {
             const wgsCoords = interviewer.addresses.map(address => (
                 toLonLat(address.coordinates, 'EPSG:3301')
             ));
@@ -244,12 +244,10 @@ class Map extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.interviewers !== this.props.interviewers) {
-            // Addresses or interviewers changed
-            const selectedInterviewers = this.props.interviewers.filter(interviewer => interviewer.selected);
-            const interviewerCoordinates = getInterviewersCoordinates(selectedInterviewers);
+            // Interviewers changed
+            const interviewerCoordinates = getInterviewersCoordinates(this.props.interviewers);
 
-            const addressedInterviewers = splitAddresses(this.props.addresses, selectedInterviewers);
-            const interviewerAreas = addressedInterviewers
+            const interviewerAreas = this.props.interviewers
                 .filter(interviewer => interviewer.addresses.length !== 0)
                 .map((interviewer) => {
                     const wgsCoords = interviewer.addresses.map(address => (

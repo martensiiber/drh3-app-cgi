@@ -1,6 +1,4 @@
 import React from 'react';
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import logo from '../../img/logo.svg';

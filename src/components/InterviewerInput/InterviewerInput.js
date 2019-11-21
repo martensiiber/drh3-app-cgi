@@ -5,10 +5,6 @@ import AddIcon from '@material-ui/icons/Add';
 import RemoveIcon from '@material-ui/icons/Remove';
 
 class InterviewerInput extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const { interviewersAmount, handleAdd, handleRemove, handleAmountChange } = this.props;
         return(
@@ -22,6 +18,7 @@ class InterviewerInput extends React.Component {
                         className="interviewer-input"
                         id="klAmount"
                         label="Arv"
+                        type="number"
                         onChange={handleAmountChange}
                         value={interviewersAmount}
                         variant="outlined"

@@ -4,7 +4,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
-import InterviewersSlider from "./InterviewersSlider";
 import PermIdentityIcon from '@material-ui/icons/PermIdentity';
 import './mapSettings.scss';
 import InterviewerInput from "./InterviewerInput/InterviewerInput";
@@ -17,7 +16,9 @@ const MapSettings = ({
                          handleAmountChange,
                          handleAdd,
                          handleRemove,
-                         interviewersAmount
+                         interviewersAmount,
+                         nameFilter,
+                         handleFilterChange,
                 }) => {
     return (
         <div className="interviewers-settings">
@@ -30,36 +31,38 @@ const MapSettings = ({
                 handleRemove={handleRemove}
                 handleAmountChange={handleAmountChange}
             />
-
             <div className="interviewer-input__filter-wrapper">
                 <TextField
                     className="interviewer-input__filter"
                     label="Filtreeri nime järgi"
                     variant="outlined"
+                    value={nameFilter}
+                    onChange={handleFilterChange}
                 />
             </div>
 
             <List className="interviewers-list">
                 {
-                    interviewers.map((interviewer) => {
-                        const labelId = `checkbox-list-label-${interviewer.id}`;
-                        return(
+                    interviewers
+                        .filter(interviewer => nameFilter === '' || interviewer.name.includes(nameFilter))
+                        .map((interviewer) => {
+                            const labelId = `checkbox-list-label-${interviewer.id}`;
+                            return(
+                                <ListItem key={interviewer.id} button onClick={handleSelectInterviewer.bind(this, interviewer.id)}>
+                                    <ListItemIcon>
+                                        <Checkbox
+                                            edge="start"
+                                            checked={interviewer.selected}
+                                            tabIndex={-1}
+                                            disableRipple
+                                            inputProps={{ 'aria-labelledby': labelId }}
+                                        />
+                                    </ListItemIcon>
+                                    <ListItemText id={labelId} primary={interviewer.name} />
+                                </ListItem>
+                            )
 
-                            <ListItem key={interviewer.id} button onClick={handleSelectInterviewer.bind(this, interviewer.id)}>
-                                <ListItemIcon>
-                                    <Checkbox
-                                        edge="start"
-                                        checked={interviewer.selected}
-                                        tabIndex={-1}
-                                        disableRipple
-                                        inputProps={{ 'aria-labelledby': labelId }}
-                                    />
-                                </ListItemIcon>
-                                <ListItemText id={labelId} primary={interviewer.name} />
-                            </ListItem>
-                        )
-
-                    })
+                        })
                 }
             </List>
 

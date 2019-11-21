@@ -4,8 +4,8 @@ import MapSettings from "./components/MapSettings";
 import Map from "./components/Map";
 import cloneDeep from "lodash-es/cloneDeep";
 import TopBar from "./components/TopBar/TopBar";
-import rawInterviewers from './data/kysitlejad.json';
-import rawAddresses from './data/adr_valim_xy_aggr.json';
+import rawInterviewers from './data/kysitlejad_cityurban.json';
+import rawAddresses from './data/adr_valim_xy_aggr_cityurban.json';
 
 // Temporary transformation
 const interviewers = rawInterviewers
@@ -13,9 +13,12 @@ const interviewers = rawInterviewers
     .map((interviewer) => ({
         id: interviewer.sisendaadressi_id,
         name: interviewer.nimi,
-        selected: false,
+        selected: interviewer.linn_vald === 'Tallinn',
+        fromCity: interviewer.linnalinemaaline === 'linnaline',
         coordinates: interviewer.adr_xy.coordinates
     }));
+
+console.log(interviewers);
 
 const intersectingZones = interviewers.map((interviewer) => ({
     id: interviewer.id,
@@ -30,7 +33,46 @@ const addresses = rawAddresses
         coordinates: address.adr_xy.coordinates,
         intersectingZones,
         isVisited: address.is_visited,
+        fromCity: address.linnalinemaaline === 'linnaline',
     }));
+
+console.log(addresses);
+
+const findInterviewerById = (interviewers, address, zone) => {
+    return interviewers
+        .filter(interviewer => interviewer.addresses.length < 50 && interviewer.fromCity === address.fromCity)
+        .find(interviewer => interviewer.id === zone.id);
+}
+
+const splitAddresses = (addresses, interviewers) => {
+    const addressesCopy = cloneDeep(addresses);
+    const interviewersCopy = cloneDeep(interviewers);
+    // Add empty address array
+    interviewersCopy.forEach((interviewer) => {
+        interviewer.addresses = [];
+    });
+
+    // Add addresses to interviewers
+    addressesCopy.forEach((address) => {
+        // Remove not selected interviewers
+        address.intersectingZones = address.intersectingZones.filter((zone) => {
+            const found = findInterviewerById(interviewersCopy, address, zone);
+            return !!found;
+        });
+        if (address.intersectingZones.length === 0) return;
+        const closest = address.intersectingZones.reduce((closest, current) => {
+            return current.distance < closest.distance ? current : closest
+        });
+        const interviewer = findInterviewerById(interviewersCopy, address, closest);
+        if (!interviewer) return;
+        interviewer.addresses.push({
+            id: address.id,
+            coordinates: address.coordinates,
+        });
+    });
+    return interviewersCopy;
+}
+
 class MapApp extends React.Component {
     constructor(props) {
         super(props);
@@ -39,33 +81,48 @@ class MapApp extends React.Component {
             interviewersDefault: interviewers,
             interviewers: [],
             interviewersAmount: 0,
-            addresses
+            addressedInterviewers: [],
+            addresses,
+            nameFilter: '',
         }
     }
 
     componentDidMount() {
         this.setState(prevState => ({
             ...prevState,
-            interviewers: cloneDeep(this.state.interviewersDefault),
+            interviewers: cloneDeep(this.state.interviewersDefault.filter(int => int.selected)),
             interviewersAmount: this.state.interviewersDefault.filter(int => int.selected).length
         }))
     }
 
-    handleAmountChange = (event, value) => {
-        // let interviewers = this.getLimitedRandomElements(this.state.interviewersDefault, event.target.value);
-        // interviewers.forEach(int => int.selected = false);
-        //
-        // this.setState(prevState => ({
-        //     ...prevState,
-        //     interviewers,
-        //     interviewersAmount: event.target.value
-        // }))
-        console.log(event, value);
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.interviewers !== this.state.interviewers) {
+            // Interviewers changed
+            const selectedInterviewers = this.state.interviewers.filter(interviewer => interviewer.selected);
+            const addressedInterviewers = splitAddresses(this.state.addresses, selectedInterviewers);
+            this.setState({addressedInterviewers});
+        }
+    }
+
+    handleInterviewersChange = (interviewsCount) => {
+        if (this.changeTimeout) {
+            clearTimeout(this.changeTimeout);
+        }
+        this.changeTimeout = setTimeout(() => {
+            let interviewers = cloneDeep(this.state.interviewersDefault)
+                .slice(0, interviewsCount);
+            interviewers.forEach(int => int.selected = true);
+
+            this.setState({interviewers});
+            this.changeTimeout = null;
+        }, 500);
     };
 
-    getLimitedRandomElements = (array, limit) => {
-        const shuffled = array.sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, limit);
+    handleAmountChange = (event) => {
+        const newValue = Math.max(Math.min(+event.target.value, this.state.interviewersDefault.length), 0);
+        this.setState({
+            interviewersAmount: newValue
+        }, () => this.handleInterviewersChange(newValue));
     };
 
     handleInterviewerSelect = (id) => {
@@ -78,26 +135,25 @@ class MapApp extends React.Component {
     };
 
     handleAdd = () => {
-        let notSelected = cloneDeep(this.state.interviewers.filter(int => !int.selected));
-
-
-        this.setState(prevState => ({
-            ...prevState,
-            interviewersAmount: prevState.interviewersAmount + 1
-        }))
+        const newValue = Math.min(this.state.interviewersAmount + 1, this.state.interviewersDefault.length);
+        this.setState({
+            interviewersAmount: newValue
+        }, () => this.handleInterviewersChange(newValue));
     };
 
     handleRemove = () => {
-        this.setState((prevState) => {
-                let currentAmount = prevState.interviewersAmount - 1;
-
-                return {
-                    ...prevState,
-                    interviewersAmount: currentAmount >= 0 ? currentAmount : 0
-                }
-            }
-        )
+        let newValue = this.state.interviewersAmount - 1;
+        this.setState({
+            interviewersAmount: newValue >= 0 ? newValue : 0,
+        }, () => this.handleInterviewersChange(newValue));
     };
+
+    handleFilterChange = (event) => {
+        const newFilter = event.target.value;
+        this.setState({
+            nameFilter: newFilter
+        });
+    }
 
     render() {
         return (
@@ -111,13 +167,15 @@ class MapApp extends React.Component {
                             handleAdd={this.handleAdd}
                             handleRemove={this.handleRemove}
                             handleAmountChange={this.handleAmountChange}
+                            handleFilterChange={this.handleFilterChange}
+                            nameFilter={this.state.nameFilter}
                         />
 
                     </Grid>
                     <Grid item container xs={9}>
                         <TopBar homePage={false}/>
                         <Map
-                            interviewers={this.state.interviewers}
+                            interviewers={this.state.addressedInterviewers}
                             addresses={this.state.addresses}
                         />
                     </Grid>
