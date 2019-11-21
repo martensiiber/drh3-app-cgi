@@ -18,36 +18,63 @@ import { register } from 'ol/proj/proj4';
 import MapStyles from '../MapStyles';
 import { toLonLat, fromLonLat } from 'ol/proj';
 import * as concaveman from 'concaveman';
+import cloneDeep from 'lodash/cloneDeep';
 
 import 'ol/ol.css';
 
+const CONCAVITY = 6;
+
 const getInterviewersCoordinates = (interviewers) => {
     return interviewers
-        .filter(interviewer => interviewer.selected)
         .map(interviewer => {
             const feature = new Feature(new Point(interviewer.coordinates));
             feature.setId(interviewer.id);
+            feature.set('type', 'interviewer');
             return feature;
         });
 };
-
-const getInterviewersAreas = (interviewers) => {
-    return interviewers
-        .filter(interviewer => interviewer.selected)
-        .map(interviewer => {
-            const feature = new Feature(new Polygon([interviewer.area]));
-            feature.setId(interviewer.id);
-            return feature;
-        })
-}
 
 const getAddressCoordinates = (addresses) => {
     return addresses
         .map(address => {
             const feature = new Feature(new Point(address.coordinates));
             feature.setId(address.id);
+            feature.set('type', 'address');
             return feature;
         })
+}
+
+const findInterviewerById = (interviewers, id) => {
+    return interviewers.find(interviewer => interviewer.id === id);
+}
+
+const splitAddresses = (addresses, interviewers) => {
+    const addressesCopy = cloneDeep(addresses);
+    const interviewersCopy = cloneDeep(interviewers);
+    // Add empty address array
+    interviewersCopy.forEach((interviewer) => {
+        interviewer.addresses = [];
+    });
+    // Remove not selected interviewers
+    addressesCopy.forEach((address) => {
+        address.intersectingZones = address.intersectingZones.filter((zone) => {
+            const found = findInterviewerById(interviewersCopy, zone.id);
+            return !!found;
+        });
+    });
+    // Add addresses to interviewers
+    addressesCopy.forEach((address) => {
+        if (address.intersectingZones.length === 0) return;
+        const closest = address.intersectingZones.reduce((closest, current) => {
+            return current.distance < closest.distance ? current : closest
+        });
+        const interviewer = findInterviewerById(interviewersCopy, closest.id);
+        interviewer.addresses.push({
+            id: address.id,
+            coordinates: address.coordinates,
+        });
+    });
+    return interviewersCopy;
 }
 
 class Map extends React.Component {
@@ -68,7 +95,11 @@ class Map extends React.Component {
 
     componentDidMount() {
         // Interviewers coordinates layer
-        const interviewerCoordinates = getInterviewersCoordinates(this.props.interviewers);
+        const selectedInterviewers = this.props.interviewers.filter(interviewer => interviewer.selected);
+        const interviewerCoordinates = getInterviewersCoordinates(selectedInterviewers);
+
+        const addressedInterviewers = splitAddresses(this.props.addresses, selectedInterviewers);
+
         this.interviewersLayer = new VectorLayer({
             source: new VectorSource({
                 features: interviewerCoordinates
@@ -77,13 +108,14 @@ class Map extends React.Component {
         });
 
         // Interviewers areas layer
-        const wgsCoords = this.props.addresses.map(address => (
-            toLonLat(address.coordinates, 'EPSG:3301')
-        ));
-        const concavity = 6;
-        const concave = concaveman(wgsCoords, concavity);
-        const lestCoords = concave.map(coordinate => fromLonLat(coordinate, 'EPSG:3301'));
-        const interviewerAreas = [new Feature(new Polygon([lestCoords]))];
+        const interviewerAreas = addressedInterviewers.map((interviewer) => {
+            const wgsCoords = interviewer.addresses.map(address => (
+                toLonLat(address.coordinates, 'EPSG:3301')
+            ));
+            const concave = concaveman(wgsCoords, CONCAVITY);
+            const lestCoords = concave.map(coordinate => fromLonLat(coordinate, 'EPSG:3301'));
+            return new Feature(new Polygon([lestCoords]));
+        });
 
         this.areasLayer = new VectorLayer({
             source: new VectorSource({
@@ -155,7 +187,6 @@ class Map extends React.Component {
         const localOverlay = this.overlay;
         let content = this.content;
 
-
         if (this.select !== null) {
             this.map.addInteraction(this.select);
             this.select.on('select', function(e) {
@@ -174,26 +205,35 @@ class Map extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.interviewers !== this.props.interviewers) {
-            // Interviewers prop changed
-            const interviewerCoordinates = getInterviewersCoordinates(this.props.interviewers);
-            const interviewerAreas = getInterviewersAreas(this.props.interviewers);
+        if (prevProps.interviewers !== this.props.interviewers || prevProps.addresses !== this.props.addresses) {
+            // Addresses or interviewers changed
+            const selectedInterviewers = this.props.interviewers.filter(interviewer => interviewer.selected);
+            const interviewerCoordinates = getInterviewersCoordinates(selectedInterviewers);
+
+            const addressedInterviewers = splitAddresses(this.props.addresses, selectedInterviewers);
+            const interviewerAreas = addressedInterviewers
+                .filter(interviewer => interviewer.addresses.length !== 0)
+                .map((interviewer) => {
+                    const wgsCoords = interviewer.addresses.map(address => (
+                        toLonLat(address.coordinates, 'EPSG:3301')
+                    ));
+                    const concave = concaveman(wgsCoords, CONCAVITY);
+                    const lestCoords = concave.map(coordinate => fromLonLat(coordinate, 'EPSG:3301'));
+                    return new Feature(new Polygon([lestCoords]));
+                });
+
             this.interviewersLayer.setSource(new VectorSource({
                 features: interviewerCoordinates
             }));
 
             this.areasLayer.setSource(new VectorSource({
                 features: interviewerAreas
-            }));
-
-            this.changeInteraction(this.props.interviewers);
-        }
-        if (prevProps.addresses !== this.props.addresses) {
-            // Addresses prop changed
+            }))
             const addressCoordinates = getAddressCoordinates(this.props.addresses);
             this.addressesLayer.setSource(new VectorSource({
                 features: addressCoordinates
             }));
+            this.changeInteraction(this.props.interviewers);
         }
     }
 
