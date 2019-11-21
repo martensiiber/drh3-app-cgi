@@ -1,0 +1,26 @@
+[
+    {
+        "uuring": "ESS",
+        "intervjueerimisealgus": "01.10.2018",
+        "intervjueerimise_lopp": "31.12.2018",
+        "interviewers": 32,
+        "is_complete": false,
+        "progress": "19/200"
+    },
+    {
+        "uuring": "ETU",
+        "intervjueerimisealgus": "04.03.2018",
+        "intervjueerimise_lopp": "18.03.2018",
+        "interviewers": 16,
+        "is_complete": true,
+        "progress": "54/54"
+    },
+    {
+        "uuring": "LEU",
+        "intervjueerimisealgus": "09.12.2018",
+        "intervjueerimise_lopp": "05.02.2019",
+        "interviewers": 23,
+        "is_complete": false,
+        "progress": "10/105"
+    }
+]

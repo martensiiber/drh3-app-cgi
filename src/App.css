@@ -7,7 +7,7 @@
 }
 
 #map {
-  height: 100vh;
+  height: calc(100vh - 80px);
   width: 100vw;
   position: relative;
 }
@@ -18,9 +18,8 @@
   -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
   filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
   padding: 15px;
-  border-radius: 10px;
   border: 1px solid #cccccc;
-  bottom: 12px;
+  bottom: 20px;
   left: -50px;
   min-width: 280px;
 }
@@ -53,4 +52,7 @@
 }
 .ol-popup-closer:after {
   content: "✖";
+}
+#popup-header {
+  text-transform: uppercase;
 }

@@ -1,0 +1,22 @@
+.info-table {
+  &__link {
+    color: #005AA3;
+    text-decoration: underline;
+  }
+
+  &__status {
+    width: 5px;
+    height: 5px;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: 5px;
+
+    &.orange {
+      background-color: #FDA57D;
+    }
+
+    &.green {
+      background-color: #2F8428;
+    }
+  }
+}

@@ -4,46 +4,71 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
-import InterviewersSlider from "./InterviewersSlider";
-import './mapSettings.css';
+import PermIdentityIcon from '@material-ui/icons/PermIdentity';
+import './mapSettings.scss';
+import InterviewerInput from "./InterviewerInput/InterviewerInput";
+import {Link} from "react-router-dom";
+import TextField from "@material-ui/core/TextField";
 
 const MapSettings = ({
                          interviewers,
                          handleSelectInterviewer,
-                         handleSliderChange,
+                         handleAmountChange,
+                         handleAdd,
+                         handleRemove,
                          interviewersAmount,
-                         maxInterviewers
+                         nameFilter,
+                         handleFilterChange,
                 }) => {
     return (
         <div className="interviewers-settings">
-            <InterviewersSlider
-                handleSliderChange={handleSliderChange}
+            <div className="interviewers-settings__title">
+                <PermIdentityIcon/> Küsitlejad
+            </div>
+            <InterviewerInput
                 interviewersAmount={interviewersAmount}
-                maxInterviewers={maxInterviewers}
+                handleAdd={handleAdd}
+                handleRemove={handleRemove}
+                handleAmountChange={handleAmountChange}
             />
+            <div className="interviewer-input__filter-wrapper">
+                <TextField
+                    className="interviewer-input__filter"
+                    label="Filtreeri nime järgi"
+                    variant="outlined"
+                    value={nameFilter}
+                    onChange={handleFilterChange}
+                />
+            </div>
+
             <List className="interviewers-list">
                 {
-                    interviewers.map((interviewer) => {
-                        const labelId = `checkbox-list-label-${interviewer.id}`;
-                        return(
+                    interviewers
+                        .filter(interviewer => nameFilter === '' || interviewer.name.includes(nameFilter))
+                        .map((interviewer) => {
+                            const labelId = `checkbox-list-label-${interviewer.id}`;
+                            return(
+                                <ListItem key={interviewer.id} button onClick={handleSelectInterviewer.bind(this, interviewer.id)}>
+                                    <ListItemIcon>
+                                        <Checkbox
+                                            edge="start"
+                                            checked={interviewer.selected}
+                                            tabIndex={-1}
+                                            disableRipple
+                                            inputProps={{ 'aria-labelledby': labelId }}
+                                        />
+                                    </ListItemIcon>
+                                    <ListItemText id={labelId} primary={interviewer.name} />
+                                </ListItem>
+                            )
 
-                            <ListItem key={interviewer.id} dense button onClick={handleSelectInterviewer.bind(this, interviewer.id)}>
-                                <ListItemIcon>
-                                    <Checkbox
-                                        edge="start"
-                                        checked={interviewer.selected}
-                                        tabIndex={-1}
-                                        disableRipple
-                                        inputProps={{ 'aria-labelledby': labelId }}
-                                    />
-                                </ListItemIcon>
-                                <ListItemText id={labelId} primary={interviewer.name} />
-                            </ListItem>
-                        )
-
-                    })
+                        })
                 }
             </List>
+
+            <div className="interviewers-settings__confirm">
+                <Link to={"/"} className="interviewers-settings__confirm-button">Kinnita</Link>
+            </div>
         </div>
     );
 }
