@@ -19,7 +19,6 @@ import { register } from 'ol/proj/proj4';
 import MapStyles from '../MapStyles';
 import { toLonLat, fromLonLat } from 'ol/proj';
 import * as concaveman from 'concaveman';
-import cloneDeep from "lodash-es/cloneDeep";
 
 import 'ol/ol.css';
 
@@ -46,41 +45,6 @@ const getAddressCoordinates = (addresses, isVisited) => {
         })
 }
 
-const findInterviewerById = (interviewers, id) => {
-    return interviewers
-        .filter(interviewer => interviewer.addresses.length < 50)
-        .find(interviewer => interviewer.id === id);
-}
-
-const splitAddresses = (addresses, interviewers) => {
-    const addressesCopy = cloneDeep(addresses);
-    const interviewersCopy = cloneDeep(interviewers);
-    // Add empty address array
-    interviewersCopy.forEach((interviewer) => {
-        interviewer.addresses = [];
-    });
-
-    // Add addresses to interviewers
-    addressesCopy.forEach((address) => {
-        // Remove not selected interviewers
-        address.intersectingZones = address.intersectingZones.filter((zone) => {
-            const found = findInterviewerById(interviewersCopy, zone.id);
-            return !!found;
-        });
-        if (address.intersectingZones.length === 0) return;
-        const closest = address.intersectingZones.reduce((closest, current) => {
-            return current.distance < closest.distance ? current : closest
-        });
-        const interviewer = findInterviewerById(interviewersCopy, closest.id);
-        if (!interviewer) return;
-        interviewer.addresses.push({
-            id: address.id,
-            coordinates: address.coordinates,
-        });
-    });
-    return interviewersCopy;
-}
-
 class Map extends React.Component {
     constructor(props) {
         super(props);
@@ -100,10 +64,7 @@ class Map extends React.Component {
 
     componentDidMount() {
         // Interviewers coordinates layer
-        const selectedInterviewers = this.props.interviewers.filter(interviewer => interviewer.selected);
-        const interviewerCoordinates = getInterviewersCoordinates(selectedInterviewers);
-
-        const addressedInterviewers = splitAddresses(this.props.addresses, selectedInterviewers);
+        const interviewerCoordinates = getInterviewersCoordinates(this.props.interviewers);
 
         this.interviewersLayer = new VectorLayer({
             source: new VectorSource({
