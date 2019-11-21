@@ -3,6 +3,9 @@ import React from 'react';
 import View from 'ol/View';
 import { get as getProjection } from 'ol/proj';
 import olMap from 'ol/Map';
+import Overlay from 'ol/Overlay';
+import { click } from 'ol/events/condition';
+import Select from 'ol/interaction/Select';
 import TileLayer from 'ol/layer/Tile';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
@@ -16,7 +19,7 @@ import MapStyles from '../MapStyles';
 import { toLonLat, fromLonLat } from 'ol/proj';
 import * as concaveman from 'concaveman';
 
-require('ol/ol.css');
+import 'ol/ol.css';
 
 const getInterviewersCoordinates = (interviewers) => {
     return interviewers
@@ -55,6 +58,12 @@ class Map extends React.Component {
             + '+lat_0=57.51755393055556 +lon_0=24 +x_0=500000 +y_0=6375000 +ellps=GRS80 '
             + '+towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
         register(proj4);
+        this.overlay = null;
+        this.content = React.createRef();
+        this.popup = React.createRef();
+        this.closer = React.createRef();
+        this.select = null;
+        this.map = null;
     }
 
     componentDidMount() {
@@ -100,6 +109,14 @@ class Map extends React.Component {
             projection: getProjection('EPSG:3301')
         });
 
+        this.overlay = new Overlay({
+            element: this.popup.current,
+            autoPan: true,
+            autoPanAnimation: {
+                duration: 250
+            }
+        });
+
         this.map = new olMap({
             view: this.view,
             controls: [],
@@ -107,12 +124,53 @@ class Map extends React.Component {
                 new TileLayer({
                     source: new OSMSource(),
                 }),
-                this.interviewersLayer,
                 this.areasLayer,
                 this.addressesLayer,
+                this.interviewersLayer,
             ],
+            overlays: [this.overlay],
             target: this.refs.mapContainer
         });
+
+        let localOverlay = this.overlay;
+        let localCloser = this.closer.current;
+
+        localCloser.onclick = function() {
+            console.log(this);
+            localOverlay.setPosition(undefined);
+            localCloser.blur();
+            return false;
+        };
+    }
+
+    changeInteraction = (interviewers) => {
+        if (this.select !== null) {
+            this.map.removeInteraction(this.select);
+        }
+        this.select = new Select({
+            condition: click,
+            layers: [this.interviewersLayer]
+        });
+
+        const localOverlay = this.overlay;
+        let content = this.content;
+
+
+        if (this.select !== null) {
+            this.map.addInteraction(this.select);
+            this.select.on('select', function(e) {
+                const feature = e.selected[0];
+
+                if(!!feature) {
+                    const featureId = feature.getId();
+                    const selectedInterviewer = interviewers.find(int => int.id === featureId);
+
+                    content.current.innerHTML = `id: ${selectedInterviewer.id}<br> name: ${selectedInterviewer.name}`;
+
+                    localOverlay.setPosition(selectedInterviewer.coordinates);
+                }
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -126,7 +184,9 @@ class Map extends React.Component {
 
             this.areasLayer.setSource(new VectorSource({
                 features: interviewerAreas
-            }))
+            }));
+
+            this.changeInteraction(this.props.interviewers);
         }
         if (prevProps.addresses !== this.props.addresses) {
             // Addresses prop changed
@@ -139,7 +199,13 @@ class Map extends React.Component {
 
     render() {
         return (
-            <div id="map" ref="mapContainer"> </div>
+            <React.Fragment>
+                <div id="map" ref="mapContainer"></div>
+                <div id="popup" className="ol-popup" ref={this.popup}>
+                    <a href="#" id="popup-closer" className="ol-popup-closer" ref={this.closer}></a>
+                    <div id="popup-content" ref={this.content}></div>
+                </div>
+            </React.Fragment>
         );
     }
 }
