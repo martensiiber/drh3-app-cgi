@@ -13,6 +13,8 @@ import VectorSource from 'ol/source/Vector';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4';
 import MapStyles from '../MapStyles';
+import { toLonLat, fromLonLat } from 'ol/proj';
+import * as concaveman from 'concaveman';
 
 require('ol/ol.css');
 
@@ -66,7 +68,14 @@ class Map extends React.Component {
         });
 
         // Interviewers areas layer
-        const interviewerAreas = getInterviewersAreas(this.props.interviewers);
+        const wgsCoords = this.props.addresses.map(address => (
+            toLonLat(address.coordinates, 'EPSG:3301')
+        ));
+        const concavity = 6;
+        const concave = concaveman(wgsCoords, concavity);
+        const lestCoords = concave.map(coordinate => fromLonLat(coordinate, 'EPSG:3301'));
+        const interviewerAreas = [new Feature(new Polygon([lestCoords]))];
+
         this.areasLayer = new VectorLayer({
             source: new VectorSource({
                 features: interviewerAreas
