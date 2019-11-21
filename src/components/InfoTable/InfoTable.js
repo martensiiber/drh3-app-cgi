@@ -10,6 +10,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Paper from '@material-ui/core/Paper';
 import tableData from '../../data/adr_valim_aggrregated';
+import { Link } from 'react-router-dom';
 
 import './info-table.scss';
 
@@ -215,9 +216,14 @@ export default function InfoTable() {
                                             <TableCell>{row.intervjueerimisealgus}</TableCell>
                                             <TableCell>{row.intervjueerimise_lopp}</TableCell>
                                             <TableCell>{row.interviewers}</TableCell>
-                                            <TableCell>{row.is_complete ? 'Tehtud' : 'Teostamisel'}</TableCell>
+                                            <TableCell>
+                                                {row.is_complete ? 'Tehtud' : 'Teostamisel'}
+                                            </TableCell>
                                             <TableCell>{row.progress}</TableCell>
-                                            <TableCell><a href="#" className="info-table__link">Vaata kaardil</a></TableCell>
+                                            <TableCell>
+                                                <Link to="/map" className="info-table__link">Vaata kaardil</Link>
+                                                {/*<a href="#" className="info-table__link"></a>*/}
+                                            </TableCell>
                                         </TableRow>
                                     );
                                 })}

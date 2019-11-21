@@ -1,0 +1,65 @@
+.interviewer-input {
+  width: 60px;
+  &__wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+
+    .MuiInputLabel-outlined {
+      transform: translate(16px, 14px) scale(1);
+    }
+
+    .MuiInputBase-root {
+      max-height: 44px !important;
+      text-align: center;
+    }
+  }
+
+  &__filter {
+    width: 100%;
+
+    .MuiInputLabel-outlined {
+      transform: translate(16px, 14px) scale(1);
+    }
+
+    .MuiInputBase-root {
+      max-height: 44px !important;
+      text-align: center;
+    }
+
+    &-wrapper {
+      margin-top: 12px;
+      margin-bottom: 25px;
+    }
+  }
+
+  &__label {
+    font-size: 16px;
+    line-height: 19px;
+    color: #000;
+    margin-right: 22px;
+  }
+
+  &__action {
+    background-color: #005AA3;
+    border-radius: 50%;
+    align-items: center;
+    color: #fff;
+    width: 25px;
+    height: 25px;
+    font-size: 16px;
+    cursor: pointer;
+
+    &--minus {
+      margin-right: 12px;
+    }
+
+    &--plus {
+      margin-left: 12px;
+    }
+  }
+}
