@@ -11,6 +11,7 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
 import VectorLayer from 'ol/layer/Vector';
+import WebGLPointsLayer from 'ol/layer/WebGLPoints';
 import OSMSource from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
 import proj4 from 'proj4';
@@ -34,8 +35,9 @@ const getInterviewersCoordinates = (interviewers) => {
         });
 };
 
-const getAddressCoordinates = (addresses) => {
+const getAddressCoordinates = (addresses, isVisited) => {
     return addresses
+        .filter(address => address.isVisited === isVisited)
         .map(address => {
             const feature = new Feature(new Point(address.coordinates));
             feature.setId(address.id);
@@ -45,7 +47,9 @@ const getAddressCoordinates = (addresses) => {
 }
 
 const findInterviewerById = (interviewers, id) => {
-    return interviewers.find(interviewer => interviewer.id === id);
+    return interviewers
+        .filter(interviewer => interviewer.addresses.length < 50)
+        .find(interviewer => interviewer.id === id);
 }
 
 const splitAddresses = (addresses, interviewers) => {
@@ -55,20 +59,20 @@ const splitAddresses = (addresses, interviewers) => {
     interviewersCopy.forEach((interviewer) => {
         interviewer.addresses = [];
     });
-    // Remove not selected interviewers
+
+    // Add addresses to interviewers
     addressesCopy.forEach((address) => {
+        // Remove not selected interviewers
         address.intersectingZones = address.intersectingZones.filter((zone) => {
             const found = findInterviewerById(interviewersCopy, zone.id);
             return !!found;
         });
-    });
-    // Add addresses to interviewers
-    addressesCopy.forEach((address) => {
         if (address.intersectingZones.length === 0) return;
         const closest = address.intersectingZones.reduce((closest, current) => {
             return current.distance < closest.distance ? current : closest
         });
         const interviewer = findInterviewerById(interviewersCopy, closest.id);
+        if (!interviewer) return;
         interviewer.addresses.push({
             id: address.id,
             coordinates: address.coordinates,
@@ -86,7 +90,8 @@ class Map extends React.Component {
             + '+towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
         register(proj4);
         this.overlay = null;
-        this.content = React.createRef();
+        this.popupHeader = React.createRef();
+        this.popupBody = React.createRef();
         this.popup = React.createRef();
         this.closer = React.createRef();
         this.select = null;
@@ -125,12 +130,22 @@ class Map extends React.Component {
         });
 
         // Addresses coordinates layer
-        const addressCoordinates = getAddressCoordinates(this.props.addresses);
-        this.addressesLayer = new VectorLayer({
+        const incompleteAddressCoordinates = getAddressCoordinates(this.props.addresses, false);
+        this.incompleteAddressesLayer = new WebGLPointsLayer({
             source: new VectorSource({
-                features: addressCoordinates
+                features: incompleteAddressCoordinates
             }),
-            style: MapStyles.addressStyle,
+            style: MapStyles.incompleteAddressStyle,
+            disableHitDetection: false
+        });
+
+        const completeAddressCoordinates = getAddressCoordinates(this.props.addresses, true);
+        this.completeAddressesLayer = new WebGLPointsLayer({
+            source: new VectorSource({
+                features: completeAddressCoordinates
+            }),
+            style: MapStyles.completeAddressStyle,
+            disableHitDetection: false
         });
 
         this.view = new View({
@@ -156,8 +171,9 @@ class Map extends React.Component {
                 new TileLayer({
                     source: new OSMSource(),
                 }),
+                this.incompleteAddressesLayer,
+                this.completeAddressesLayer,
                 this.areasLayer,
-                this.addressesLayer,
                 this.interviewersLayer,
             ],
             overlays: [this.overlay],
@@ -185,7 +201,8 @@ class Map extends React.Component {
         });
 
         const localOverlay = this.overlay;
-        let content = this.content;
+        const popupHeader = this.popupHeader;
+        const popupBody = this.popupBody;
 
         if (this.select !== null) {
             this.map.addInteraction(this.select);
@@ -196,7 +213,28 @@ class Map extends React.Component {
                     const featureId = feature.getId();
                     const selectedInterviewer = interviewers.find(int => int.id === featureId);
 
-                    content.current.innerHTML = `id: ${selectedInterviewer.id}<br> name: ${selectedInterviewer.name}`;
+                    popupHeader.current.innerHTML = selectedInterviewer.name;
+                    popupBody.current.innerHTML = `
+                        <tr>
+                            <td>Jaoskonna nr</td>
+                            <td>${selectedInterviewer.id}</td>
+                        </tr>
+                        <tr>
+                            <td>Objekte</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>Prognoositud läbisõit</td>
+                            <td>45 km</td>
+                        </tr>
+                        <tr>
+                            <td>Kütusekulu</td>
+                            <td>23 L</td>
+                        </tr>
+                        <tr>
+                            <td>Küsitleja alguspunkt</td>
+                            <td>Liblika tn 123</td>
+                        </tr>`;
 
                     localOverlay.setPosition(selectedInterviewer.coordinates);
                 }
@@ -205,7 +243,7 @@ class Map extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.interviewers !== this.props.interviewers || prevProps.addresses !== this.props.addresses) {
+        if (prevProps.interviewers !== this.props.interviewers) {
             // Addresses or interviewers changed
             const selectedInterviewers = this.props.interviewers.filter(interviewer => interviewer.selected);
             const interviewerCoordinates = getInterviewersCoordinates(selectedInterviewers);
@@ -229,10 +267,6 @@ class Map extends React.Component {
             this.areasLayer.setSource(new VectorSource({
                 features: interviewerAreas
             }))
-            const addressCoordinates = getAddressCoordinates(this.props.addresses);
-            this.addressesLayer.setSource(new VectorSource({
-                features: addressCoordinates
-            }));
             this.changeInteraction(this.props.interviewers);
         }
     }
@@ -243,7 +277,11 @@ class Map extends React.Component {
                 <div id="map" ref="mapContainer"></div>
                 <div id="popup" className="ol-popup" ref={this.popup}>
                     <a href="#" id="popup-closer" className="ol-popup-closer" ref={this.closer}></a>
-                    <div id="popup-content" ref={this.content}></div>
+                    <div id="popup-content">
+                        <div id="popup-header" ref={this.popupHeader}></div>
+                        <hr/>
+                        <table id="popup-body" ref={this.popupBody} cellSpacing="5px"></table>
+                    </div>
                 </div>
             </React.Fragment>
         );
