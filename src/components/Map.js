@@ -11,6 +11,7 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
 import VectorLayer from 'ol/layer/Vector';
+import WebGLPointsLayer from 'ol/layer/WebGLPoints';
 import OSMSource from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
 import proj4 from 'proj4';
@@ -128,11 +129,12 @@ class Map extends React.Component {
 
         // Addresses coordinates layer
         const addressCoordinates = getAddressCoordinates(this.props.addresses);
-        this.addressesLayer = new VectorLayer({
+        this.addressesLayer = new WebGLPointsLayer({
             source: new VectorSource({
                 features: addressCoordinates
             }),
             style: MapStyles.addressStyle,
+            disableHitDetection: false
         });
 
         this.view = new View({

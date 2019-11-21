@@ -23,16 +23,14 @@ export default class MapStyles {
     }),
   });
 
-  static addressStyle = new Style({
-    image: new Circle({
-      radius: 1,
-      fill: new Fill({
-        color: 'rgba(255, 0, 0, 0.3)',
-      }),
-      stroke: new Stroke({
-        color: 'rgba(255, 0, 0, 1)',
-        width: 2,
-      }),
-    }),
-  });
+  static addressStyle = {
+    symbol: {
+      symbolType: 'circle',
+      size: 6,
+      color: '#ff2200',
+      rotateWithView: false,
+      offset: [0, 0],
+      opacity: 1
+    },
+  };
 };
