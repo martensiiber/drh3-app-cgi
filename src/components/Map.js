@@ -36,6 +36,14 @@ const getInterviewersAreas = (interviewers) => {
         })
 }
 
+const getAddressCoordinates = (addresses) => {
+    return addresses
+        .map(address => {
+            const feature = new Feature(new Point(address.coordinates));
+            feature.setId(address.id);
+            return feature;
+        })
+}
 
 class Map extends React.Component {
     constructor(props) {
@@ -48,21 +56,31 @@ class Map extends React.Component {
     }
 
     componentDidMount() {
+        // Interviewers coordinates layer
         const interviewerCoordinates = getInterviewersCoordinates(this.props.interviewers);
-
         this.interviewersLayer = new VectorLayer({
             source: new VectorSource({
                 features: interviewerCoordinates
             }),
-            style: MapStyles.interviewersStyle,
+            style: MapStyles.interviewerStyle,
         });
 
+        // Interviewers areas layer
         const interviewerAreas = getInterviewersAreas(this.props.interviewers);
-        this.interviewerAreas = new VectorLayer({
+        this.areasLayer = new VectorLayer({
             source: new VectorSource({
                 features: interviewerAreas
             }),
-            style: MapStyles.interviewerAreaStyle,
+            style: MapStyles.areaStyle,
+        });
+
+        // Addresses coordinates layer
+        const addressCoordinates = getAddressCoordinates(this.props.addresses);
+        this.addressesLayer = new VectorLayer({
+            source: new VectorSource({
+                features: addressCoordinates
+            }),
+            style: MapStyles.addressStyle,
         });
 
         this.view = new View({
@@ -81,7 +99,8 @@ class Map extends React.Component {
                     source: new OSMSource(),
                 }),
                 this.interviewersLayer,
-                this.interviewerAreas,
+                this.areasLayer,
+                this.addressesLayer,
             ],
             target: this.refs.mapContainer
         });
@@ -89,15 +108,23 @@ class Map extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.interviewers !== this.props.interviewers) {
+            // Interviewers prop changed
             const interviewerCoordinates = getInterviewersCoordinates(this.props.interviewers);
             const interviewerAreas = getInterviewersAreas(this.props.interviewers);
             this.interviewersLayer.setSource(new VectorSource({
                 features: interviewerCoordinates
             }));
 
-            this.interviewerAreas.setSource(new VectorSource({
+            this.areasLayer.setSource(new VectorSource({
                 features: interviewerAreas
             }))
+        }
+        if (prevProps.addresses !== this.props.addresses) {
+            // Addresses prop changed
+            const addressCoordinates = getAddressCoordinates(this.props.addresses);
+            this.addressesLayer.setSource(new VectorSource({
+                features: addressCoordinates
+            }));
         }
     }
 

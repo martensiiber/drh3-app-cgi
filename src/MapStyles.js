@@ -4,9 +4,28 @@ import Stroke from 'ol/style/Stroke';
 import Fill from 'ol/style/Fill';
 
 export default class MapStyles {
-  static interviewersStyle = new Style({
+  static interviewerStyle = new Style({
     image: new Circle({
       radius: 5,
+      fill: new Fill({
+        color: 'rgba(74, 144, 226, 0.7)',
+      }),
+      stroke: new Stroke({
+        color: 'rgba(74, 144, 226, 1)',
+        width: 2,
+      }),
+    }),
+  });
+
+  static areaStyle = new Style({
+    fill: new Fill({
+      color: 'rgba(74, 144, 226, 0.3)',
+    }),
+  });
+
+  static addressStyle = new Style({
+    image: new Circle({
+      radius: 3,
       fill: new Fill({
         color: 'rgba(255, 0, 0, 0.3)',
       }),
@@ -14,12 +33,6 @@ export default class MapStyles {
         color: 'rgba(255, 0, 0, 1)',
         width: 2,
       }),
-    }),
-  });
-
-  static interviewerAreaStyle = new Style({
-    fill: new Fill({
-      color: 'rgba(74, 144, 226, 0.3)',
     }),
   });
 };

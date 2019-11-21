@@ -3,13 +3,15 @@ import Grid from '@material-ui/core/Grid';
 import MapSettings from "./components/MapSettings";
 import Map from "./components/Map";
 import interviewers from './data/interviewers.json';
+import addresses from './data/addresses.json';
 
 class MapApp extends React.Component{
     constructor(props) {
         super(props);
 
         this.state = {
-            interviewers: interviewers
+            interviewers,
+            addresses,
         }
     }
 
@@ -34,6 +36,7 @@ class MapApp extends React.Component{
                     <Grid item container xs={8}>
                         <Map
                             interviewers={this.state.interviewers}
+                            addresses={this.state.addresses}
                         />
                     </Grid>
                 </Grid>

@@ -51,14 +51,14 @@
   {
     "id": 7,
     "name": "Test Interviewer 7",
-    "selected": true,
+    "selected": false,
     "coordinates": [547193.170937, 6593443.222498],
     "area": []
   },
   {
     "id": 8,
     "name": "Test Interviewer 8",
-    "selected": true,
+    "selected": false,
     "coordinates": [545193.170937, 6589443.222498],
     "area": []
   }
