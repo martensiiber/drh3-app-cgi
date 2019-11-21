@@ -6,7 +6,6 @@ import interviewers from './data/interviewers.json';
 import addresses from './data/addresses.json';
 import cloneDeep from "lodash-es/cloneDeep";
 
-
 class MapApp extends React.Component{
     constructor(props) {
         super(props);
