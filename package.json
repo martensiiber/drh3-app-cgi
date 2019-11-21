@@ -4,8 +4,10 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.6.1",
+    "@material-ui/icons": "^4.5.1",
     "concaveman": "^1.1.1",
     "lodash-es": "^4.17.15",
+    "node-sass": "^4.13.0",
     "ol": "^6.1.1",
     "proj4": "^2.6.0",
     "react": "^16.12.0",

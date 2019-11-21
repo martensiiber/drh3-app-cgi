@@ -2,11 +2,15 @@ import React from 'react';
 import MapApp from "./MapApp";
 
 import './App.css';
+import InfoPage from "./components/InfoPage/InfoPage";
+import MainContent from "./components/MainContent/MainContent";
 
 function App() {
   return (
     <div className="app">
-      <MapApp />
+        <InfoPage />
+        <MainContent/>
+      {/*<MapApp />*/}
     </div>
   );
 }
