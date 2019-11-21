@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "address": "Test address 1",
+    "coordinates": [542193.170937, 6588843.222498]
+  },
+  {
+    "id": 2,
+    "address": "Test address 2",
+    "coordinates": [544193.170937, 6588143.222498]
+  },
+  {
+    "id": 3,
+    "address": "Test address 3",
+    "coordinates": [543393.170937, 6589143.222498]
+  },
+  {
+    "id": 4,
+    "address": "Test address 4",
+    "coordinates": [541393.170937, 6587143.222498]
+  },
+  {
+    "id": 5,
+    "address": "Test address 5",
+    "coordinates": [541693.170937, 6587743.222498]
+  },
+  {
+    "id": 6,
+    "address": "Test address 6",
+    "coordinates": [540693.170937, 6588443.222498]
+  }
+]
