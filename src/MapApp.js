@@ -2,9 +2,36 @@ import React from 'react';
 import Grid from '@material-ui/core/Grid';
 import MapSettings from "./components/MapSettings";
 import Map from "./components/Map";
-import interviewers from './data/interviewers.json';
-import addresses from './data/addresses.json';
+// import interviewers from './data/interviewers.json';
+// import addresses from './data/addresses.json';
 import cloneDeep from "lodash-es/cloneDeep";
+import rawInterviewers from './data/kysitlejad.json';
+import rawAddresses from './data/adr_valim_xy.json';
+
+// Temporary transformation
+const interviewers = rawInterviewers
+    .filter((interviewer) => interviewer.adr_xy && interviewer.adr_xy.coordinates)
+    .map((interviewer) => ({
+        id: interviewer.sisendaadressi_id,
+        name: interviewer.nimi,
+        selected: false,
+        coordinates: interviewer.adr_xy.coordinates
+    }));
+
+
+const intersectingZones = interviewers.map((interviewer) => ({
+    id: interviewer.id,
+    distance: Math.random() * 1500,
+}));
+
+const addresses = rawAddresses
+    .filter((address) => address.adr_xy && address.adr_xy.coordinates)
+    .map((address) => ({
+        id: address.id,
+        address: '',
+        coordinates: address.adr_xy.coordinates,
+        intersectingZones,
+    }));
 
 class MapApp extends React.Component{
     constructor(props) {

@@ -25,7 +25,7 @@ export default class MapStyles {
 
   static addressStyle = new Style({
     image: new Circle({
-      radius: 3,
+      radius: 1,
       fill: new Fill({
         color: 'rgba(255, 0, 0, 0.3)',
       }),
