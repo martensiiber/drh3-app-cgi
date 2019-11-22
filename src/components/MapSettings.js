@@ -66,6 +66,12 @@ const MapSettings = ({
                 }
             </List>
 
+            <div className="interviewers-settings__indicators">
+                <div className="interviewers-settings__indicators-item interviewers-settings__indicators-item--blue">Küsitleja</div>
+                <div className="interviewers-settings__indicators-item interviewers-settings__indicators-item--green">Küsitlus tehtud</div>
+                <div className="interviewers-settings__indicators-item interviewers-settings__indicators-item--red">Küsitlus tegemata</div>
+            </div>
+
             <div className="interviewers-settings__confirm">
                 <Link to={{pathname: "/tables", state: {fromMap: true}}} className="interviewers-settings__confirm-button">Kinnita</Link>
             </div>

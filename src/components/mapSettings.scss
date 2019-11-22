@@ -33,6 +33,44 @@
                 cursor: pointer;
             }
         }
+
+        &__indicators {
+            margin: 20px 0 10px;
+            &-item {
+                position: relative;
+                padding-left: 20px;
+
+                &:before {
+                    content: '';
+                    display: inline-block;
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 50%;
+                    background-color: #000;
+                    position: absolute;
+                    top: 4px;
+                    left: 0;
+                }
+
+                &--green {
+                    &:before {
+                        background-color: #308428;
+                    }
+                }
+
+                &--blue {
+                    &:before {
+                        background-color: #4D8AF0;
+                    }
+                }
+
+                &--red {
+                    &:before {
+                        background-color: #B22F16;
+                    }
+                }
+            }
+        }
     }
 
     &-slider {
@@ -42,7 +80,7 @@
     }
 
     &-list {
-        max-height: calc(100vh - 350px);
+        max-height: calc(100vh - 415px);
         overflow: auto;
 
         .MuiListItem-gutters {
@@ -69,4 +107,5 @@
             color: #005AA3;
         }
     }
+
 }
