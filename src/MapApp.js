@@ -10,12 +10,14 @@ import rawAddresses from './data/adr_valim_xy_aggr_cityurban.json';
 import rawInterviewers2 from './data/kysitlejad_cityurban_v2.json';
 
 let rawData = []
-for (let index = 0; index < 56; index++) {
+for (let index = 1; index <= 56; index++) {
     try {
-        const file = require(`./data/src_id_${index}_to_adr.json`);
+        console.log(index);
+        const file = require(`./data/all_new_adr/src_id_${index}_to_adr.json`);
         rawData = rawData.concat(file);
     } catch {}
 }
+console.time("lmao");
 
 // Temporary transformation
 const interviewers = rawInterviewers2
@@ -27,8 +29,6 @@ const interviewers = rawInterviewers2
         fromCity: interviewer.linnalinemaaline === 'linnaline',
         coordinates: interviewer.adr_xy.coordinates
     }));
-
-console.log(interviewers);
 
 const intersectingZones = interviewers.map((interviewer) => ({
     id: interviewer.id,
@@ -47,8 +47,6 @@ const addresses = rawAddresses
         isVisited: address.is_visited,
         fromCity: address.linnalinemaaline === 'linnaline',
     }));
-
-console.log(addresses);
 
 const findInterviewerById = (interviewers, address, zone) => {
     return interviewers
@@ -88,6 +86,8 @@ const splitAddresses = (addresses, interviewers) => {
 const CAP = 500;
 
 const prepareAddresses = (addresses) => {
+    console.timeEnd("lmao");
+    console.log("Starting preparing addresses.")
     const addressesPerInterview = {};
     addresses
         .filter(address => address.distance !== null)
@@ -103,33 +103,40 @@ const prepareAddresses = (addresses) => {
     Object.values(addressesPerInterview).forEach((list) =>
         list.sort((a, b) => a.distance - b.distance)
     );
+    
+    console.log("Finished preparing addresses.")
     return addressesPerInterview;
 }
 
-const divideAddresses = (addressesPerSurvey) => {
+const divideAddresses = (addressesPerSurvey, interviewers) => {
+    console.log("Starting dividing addresses.")
     const usedAddresses = new Set();
+    //const usedAddresses = {};
     const dividedAreas = {};
-    let keys = Object.keys(addressesPerSurvey);
+    const abcdef = Object.keys(addressesPerSurvey);
+    let keys = interviewers.map(a => a.id+"").filter(a=> abcdef.includes(a));//Object.keys(addressesPerSurvey); // list of strs
     let counter = 0;
 
     while (keys.length !== 0) {
         for (const interviewId of keys) {
             const address = addressesPerSurvey[interviewId][counter];
-            // if (!usedAddresses.has(address.id)) {
-            if (!address.used) {
+            //if (!usedAddresses[address.id]) {
+            // if (!address.used) {
+            if (!usedAddresses.has(address.id)) {
                 if (dividedAreas[interviewId]) {
                     dividedAreas[interviewId].push(address.id);
                 } else {
                     dividedAreas[interviewId] = [address.id]
                 }
-                // usedAddresses.add(address.id);
-                address.used = true;
+                //usedAddresses[address.id] = 1;
+                usedAddresses.add(address.id);
             }
         };
         counter += 1;
         keys = keys.filter((key) => counter < addressesPerSurvey[key].length);
-        keys = keys.filter((key) => Object.keys(dividedAreas[key]).length < CAP);
+        //keys = keys.filter((key) => dividedAreas[key].length < CAP);
     }
+    console.log("Finishing dividing addresses.");
     return dividedAreas;
 };
 
@@ -181,10 +188,9 @@ class MapApp extends React.Component {
             // Interviewers changed
             const selectedInterviewers = this.state.interviewers.filter(interviewer => interviewer.selected);
             // const addressedInterviewers = splitAddresses(this.state.addresses, selectedInterviewers);
-
             const preparedAddresses = prepareAddresses(this.state.addresses);
 
-            const dividedAddresses = divideAddresses(preparedAddresses);
+            const dividedAddresses = divideAddresses(preparedAddresses, selectedInterviewers);
             const addressedInterviewers = splitAddresses2(selectedInterviewers, dividedAddresses);
             this.setState({addressedInterviewers});
         }
