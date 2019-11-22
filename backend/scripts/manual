@@ -1,0 +1,3 @@
+to generate routing distances used postgre user with
+sudo -u postgres ./script
+if want to copy out you need postgre user two own the directory
