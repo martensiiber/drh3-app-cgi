@@ -23,11 +23,6 @@ const interviewers = rawInterviewers2
         coordinates: interviewer.adr_xy.coordinates
     }));
 
-const intersectingZones = interviewers.map((interviewer) => ({
-    id: interviewer.id,
-    distance: Math.random() * 1500,
-}));
-
 const addresses = rawAddresses
     .filter((address) => address.adr_xy && address.adr_xy.coordinates)
     .map((address) => ({
@@ -98,14 +93,14 @@ const prepareAddresses = (addresses) => {
 const divideAddresses = (addressesPerSurvey, interviewers) => {
     const usedAddresses = new Set();
     const dividedAreas = {};
-    
+
     const intCity = {};
     interviewers.forEach(i => intCity[i.id] = i.fromCity);
     // do not touch
     const abcdef = Object.keys(addressesPerSurvey).map(a=>+a);
     let keys = interviewers.map(a => a.id).filter(a=> abcdef.includes(a));
     let counter = 0;
-    const CAP = 450;
+    const CAP = 550;
 
     keys.forEach(key => dividedAreas[key] = []);
 
@@ -145,6 +140,14 @@ const splitAddresses2 = (interviewers, dividedAddresses) => {
     return interviewersCopy;
 }
 
+let MIN_STEP = 1;
+let MAX_STEP = 4;
+let step = MIN_STEP;
+
+const stepOneNames = ['Rasmus', 'Maria', 'Svetlana', 'Sirje', 'Kreet', 'Igor', 'Teet'];
+const stepTwoNames = ['Rasmus', 'Maria', 'Svetlana', 'Sirje', 'Erik', 'Kreet', 'Igor', 'Teet'];
+const stepThreeNames = ['Rasmus', 'Maria', 'Svetlana', 'Sirje', 'Erik', 'Kreet', 'Igor', 'Piret', 'Teet'];
+
 class MapApp extends React.Component {
     constructor(props) {
         super(props);
@@ -160,14 +163,20 @@ class MapApp extends React.Component {
             addresses: filteredAddresses,
             nameFilter: '',
         }
+
+        window.addEventListener('keydown', this.stepListener)
     }
 
     componentDidMount() {
         this.setState({
-            interviewers: cloneDeep(this.state.interviewersDefault.filter(int => int.selected)),
             interviewersAmount: this.state.interviewersDefault.filter(int => int.selected).length,
             preparedAddresses: prepareAddresses(this.state.addresses)
         });
+        this.followStep();
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('keydown', this.stepListener);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -177,6 +186,43 @@ class MapApp extends React.Component {
             const dividedAddresses = divideAddresses(this.state.preparedAddresses, selectedInterviewers);
             const addressedInterviewers = splitAddresses2(selectedInterviewers, dividedAddresses);
             this.setState({addressedInterviewers});
+        }
+    }
+
+    stepListener = (event) => {
+        const key = event.key;
+        if (key === 'ArrowRight') {
+            step = Math.min(step + 1, MAX_STEP);
+            this.followStep();
+        }
+        if (key === 'ArrowLeft') {
+            step = Math.max(step - 1, MIN_STEP);
+            this.followStep();
+        }
+    }
+
+    followStep = () => {
+        if (step === 1) {
+            const interviewers = cloneDeep(this.state.interviewersDefault)
+            interviewers.forEach(interviewer => interviewer.selected = false);
+            interviewers.filter(interviewer => stepOneNames.includes(interviewer.name))
+                .forEach(interviewer => interviewer.selected = true);
+            this.setState({interviewers});
+        } else if (step === 2) {
+            const interviewers = cloneDeep(this.state.interviewersDefault)
+            interviewers.forEach(interviewer => interviewer.selected = false);
+            interviewers.filter(interviewer => stepTwoNames.includes(interviewer.name))
+                .forEach(interviewer => interviewer.selected = true);
+            this.setState({interviewers});
+        } else if (step === 3) {
+            const interviewers = cloneDeep(this.state.interviewersDefault)
+            interviewers.forEach(interviewer => interviewer.selected = false);
+            interviewers.filter(interviewer => stepThreeNames.includes(interviewer.name))
+                .forEach(interviewer => interviewer.selected = true);
+            this.setState({interviewers});
+        } else if (step === 4) {
+            const interviewers = cloneDeep(this.state.interviewersDefault)
+            this.setState({interviewers});
         }
     }
 
