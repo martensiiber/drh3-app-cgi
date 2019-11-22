@@ -108,7 +108,6 @@ const divideAddresses = (addressesPerSurvey, interviewers) => {
     while (keys.length !== 0) {
         keys.forEach(key => {
             const adrid = addressesPerSurvey[key][counter].id;
-            console.log(addrCityMap[adrid] === intCity[key], addrCityMap[adrid], intCity[key]);
             if (!usedAddresses.has(adrid) && addrCityMap[adrid] === intCity[key] ) { 
                 dividedAreas[key].push(adrid);
                 usedAddresses.add(adrid);
