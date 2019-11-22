@@ -17,7 +17,7 @@ for (let index = 1; index <= 56; index++) {
         rawData = rawData.concat(file);
     } catch {}
 }
-console.time("lmao");
+
 
 // Temporary transformation
 const interviewers = rawInterviewers2
@@ -34,19 +34,20 @@ const intersectingZones = interviewers.map((interviewer) => ({
     id: interviewer.id,
     distance: Math.random() * 1500,
 }));
-
+console.time("uslow?");
 const addresses = rawAddresses
     .filter((address) => address.adr_xy && address.adr_xy.coordinates)
     .map((address) => ({
         id: +address.adr_id,
         address: '',
         coordinates: address.adr_xy.coordinates,
-        intersectingZones: rawData
-            .filter(data => data.target_id === address.adr_id)
-            .map(data => ({ id: data.src_id, distance: data.agg_cost })),
+        //intersectingZones: rawData
+        //    .filter(data => data.target_id === address.adr_id)
+        //    .map(data => ({ id: data.src_id, distance: data.agg_cost })),
         isVisited: address.is_visited,
         fromCity: address.linnalinemaaline === 'linnaline',
     }));
+console.timeEnd("uslow?");
 
 const findInterviewerById = (interviewers, address, zone) => {
     return interviewers
@@ -86,19 +87,16 @@ const splitAddresses = (addresses, interviewers) => {
 const CAP = 500;
 
 const prepareAddresses = (addresses) => {
-    console.timeEnd("lmao");
     console.log("Starting preparing addresses.")
     const addressesPerInterview = {};
     addresses
-        .filter(address => address.distance !== null)
-        .forEach((address) => {
-            address.intersectingZones.forEach((zone) => {
-                if (addressesPerInterview[zone.id]) {
-                    addressesPerInterview[zone.id].push({ id: address.id, distance: zone.distance });
-                } else {
-                    addressesPerInterview[zone.id] = [{ id: address.id, distance: zone.distance }]
-                }
-            })
+        .filter(address => address.distance !== null);
+    rawData.forEach(distRow => {
+        if (addressesPerInterview[+distRow.src_id]) {
+            addressesPerInterview[+distRow.src_id].push({ id: +distRow.target_id, distance: +distRow.agg_cost });
+        } else {
+            addressesPerInterview[+distRow.src_id] = [{ id: +distRow.target_id, distance: +distRow.agg_cost }]
+        }
     });
     Object.values(addressesPerInterview).forEach((list) =>
         list.sort((a, b) => a.distance - b.distance)
@@ -111,27 +109,25 @@ const prepareAddresses = (addresses) => {
 const divideAddresses = (addressesPerSurvey, interviewers) => {
     console.log("Starting dividing addresses.")
     const usedAddresses = new Set();
-    //const usedAddresses = {};
     const dividedAreas = {};
-    const abcdef = Object.keys(addressesPerSurvey);
-    let keys = interviewers.map(a => a.id+"").filter(a=> abcdef.includes(a));//Object.keys(addressesPerSurvey); // list of strs
+    
+    // do not touch
+    const abcdef = Object.keys(addressesPerSurvey).map(a=>+a);
+    let keys = interviewers.map(a => a.id).filter(a=> abcdef.includes(a));//Object.keys(addressesPerSurvey); // list of strs
     let counter = 0;
 
     while (keys.length !== 0) {
-        for (const interviewId of keys) {
-            const address = addressesPerSurvey[interviewId][counter];
-            //if (!usedAddresses[address.id]) {
-            // if (!address.used) {
+        keys.forEach(key => {
+            const address = addressesPerSurvey[key][counter];
             if (!usedAddresses.has(address.id)) {
-                if (dividedAreas[interviewId]) {
-                    dividedAreas[interviewId].push(address.id);
+                if (dividedAreas[key]) {
+                    dividedAreas[key].push(address.id);
                 } else {
-                    dividedAreas[interviewId] = [address.id]
+                    dividedAreas[key] = [address.id]
                 }
-                //usedAddresses[address.id] = 1;
                 usedAddresses.add(address.id);
             }
-        };
+        });
         counter += 1;
         keys = keys.filter((key) => counter < addressesPerSurvey[key].length);
         //keys = keys.filter((key) => dividedAreas[key].length < CAP);
@@ -179,7 +175,8 @@ class MapApp extends React.Component {
         this.setState(prevState => ({
             ...prevState,
             interviewers: cloneDeep(this.state.interviewersDefault.filter(int => int.selected)),
-            interviewersAmount: this.state.interviewersDefault.filter(int => int.selected).length
+            interviewersAmount: this.state.interviewersDefault.filter(int => int.selected).length,
+            preparedAddresses: prepareAddresses(this.state.addresses)
         }))
     }
 
@@ -188,9 +185,9 @@ class MapApp extends React.Component {
             // Interviewers changed
             const selectedInterviewers = this.state.interviewers.filter(interviewer => interviewer.selected);
             // const addressedInterviewers = splitAddresses(this.state.addresses, selectedInterviewers);
-            const preparedAddresses = prepareAddresses(this.state.addresses);
+            //const preparedAddresses = ;
 
-            const dividedAddresses = divideAddresses(preparedAddresses, selectedInterviewers);
+            const dividedAddresses = divideAddresses(this.state.preparedAddresses, selectedInterviewers);
             const addressedInterviewers = splitAddresses2(selectedInterviewers, dividedAddresses);
             this.setState({addressedInterviewers});
         }
