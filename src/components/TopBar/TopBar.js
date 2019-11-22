@@ -4,7 +4,7 @@ import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import logo from '../../img/logo.svg';
 import './top-bar.scss';
 
-const TopBar = ({ homePage}) => {
+const TopBar = ({ homePage, survey }) => {
     return(
         <div className={"top-bar " + (!homePage ? 'top-bar--not-home' : '')}>
             <div className="top-bar__logo">
@@ -31,7 +31,7 @@ const TopBar = ({ homePage}) => {
                         <div className="top-bar__actions-item--not-home top-bar__actions-language">
                             <div className="top-bar__actions-item-label top-bar__actions-language-label">Uuring:</div>
                             <div className="top-bar__actions-item-value top-bar__actions-language-switcher">
-                                CUTI-2020
+                                {survey ? survey : 'CUTI-2020'}
                             </div>
                         </div>
                         <div className="top-bar__actions-item--not-home top-bar__actions-user">

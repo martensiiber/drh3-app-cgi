@@ -4,10 +4,10 @@ import MapSettings from "./components/MapSettings";
 import Map from "./components/Map";
 import cloneDeep from "lodash-es/cloneDeep";
 import TopBar from "./components/TopBar/TopBar";
-import rawInterviewers from './data/kysitlejad_cityurban.json';
 import rawAddresses from './data/adr_valim_xy_aggr_cityurban.json';
 
 import rawInterviewers2 from './data/kysitlejad_cityurban_v2.json';
+// import rawData from './data/';
 
 import rawData from './data/all_adr_all_notnull.json';
 
@@ -17,6 +17,7 @@ const interviewers = rawInterviewers2
     .map((interviewer) => ({
         id: interviewer.kysitleja_id,
         name: interviewer.nimi,
+        address: interviewer.sisendaadress,
         selected: true, // interviewer.linn_vald === 'Tallinn',
         fromCity: interviewer.linnalinemaaline === 'linnaline',
         coordinates: interviewer.adr_xy.coordinates
@@ -31,8 +32,11 @@ const addresses = rawAddresses
     .filter((address) => address.adr_xy && address.adr_xy.coordinates)
     .map((address) => ({
         id: +address.adr_id,
-        address: '',
         coordinates: address.adr_xy.coordinates,
+        //intersectingZones: rawData
+        //    .filter(data => data.target_id === address.adr_id)
+        //    .map(data => ({ id: data.src_id, distance: data.agg_cost })),
+        surveys: address.uuring,
         isVisited: address.is_visited,
         fromCity: address.linnalinemaaline === 'linnaline' || address.linnalinemaaline === null,
     }));
@@ -108,7 +112,7 @@ const divideAddresses = (addressesPerSurvey, interviewers) => {
     while (keys.length !== 0) {
         keys.forEach(key => {
             const adrid = addressesPerSurvey[key][counter].id;
-            console.log(addrCityMap[adrid] === intCity[key], addrCityMap[adrid], intCity[key]);
+            // onsole.log(addrCityMap[adrid] === intCity[key], addrCityMap[adrid], intCity[key]);
             if (!usedAddresses.has(adrid) && addrCityMap[adrid] === intCity[key] ) { 
                 dividedAreas[key].push(adrid);
                 usedAddresses.add(adrid);
@@ -145,32 +149,32 @@ const splitAddresses2 = (interviewers, dividedAddresses) => {
 class MapApp extends React.Component {
     constructor(props) {
         super(props);
-
+        const survey = props.location.search ? props.location.search.substring(3) : null;
+        const filteredAddresses = addresses.filter((address) => survey === '' || !address.surveys || address.surveys.includes(survey));
+        // console.log(filteredAddresses);
         this.state = {
+            survey,
             interviewersDefault: interviewers,
             interviewers: [],
             interviewersAmount: 0,
             addressedInterviewers: [],
-            addresses,
+            addresses: filteredAddresses,
             nameFilter: '',
         }
     }
 
     componentDidMount() {
-        this.setState(prevState => ({
-            ...prevState,
+        this.setState({
             interviewers: cloneDeep(this.state.interviewersDefault.filter(int => int.selected)),
             interviewersAmount: this.state.interviewersDefault.filter(int => int.selected).length,
             preparedAddresses: prepareAddresses(this.state.addresses)
-        }))
+        });
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (prevState.interviewers !== this.state.interviewers) {
             // Interviewers changed
             const selectedInterviewers = this.state.interviewers.filter(interviewer => interviewer.selected);
-            // const addressedInterviewers = splitAddresses(this.state.addresses, selectedInterviewers);
-
             const dividedAddresses = divideAddresses(this.state.preparedAddresses, selectedInterviewers);
             const addressedInterviewers = splitAddresses2(selectedInterviewers, dividedAddresses);
             this.setState({addressedInterviewers});
@@ -246,7 +250,10 @@ class MapApp extends React.Component {
 
                     </Grid>
                     <Grid item container xs={9}>
-                        <TopBar homePage={false}/>
+                        <TopBar
+                            homePage={false}
+                            survey={this.state.survey}
+                        />
                         <Map
                             interviewers={this.state.addressedInterviewers}
                             addresses={this.state.addresses}

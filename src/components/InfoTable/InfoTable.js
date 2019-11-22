@@ -221,7 +221,7 @@ export default function InfoTable() {
                                             </TableCell>
                                             <TableCell>{row.progress}</TableCell>
                                             <TableCell align="right">
-                                                <Link to="/map" className="info-table__link">Vaata kaardil</Link>
+                                                <Link to={`/map?q=${row.uuring}`} className="info-table__link">Vaata kaardil</Link>
                                             </TableCell>
                                         </TableRow>
                                     );

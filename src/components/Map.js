@@ -112,8 +112,8 @@ class Map extends React.Component {
         });
 
         this.view = new View({
-            center: [541932, 6589304],
-            zoom: 12,
+            center: [526493, 6513417],
+            zoom: 8,
             minZoom: 2,
             maxZoom: 28,
             projection: getProjection('EPSG:3301')
@@ -147,7 +147,6 @@ class Map extends React.Component {
         let localCloser = this.closer.current;
 
         localCloser.onclick = function() {
-            console.log(this);
             localOverlay.setPosition(undefined);
             localCloser.blur();
             return false;
@@ -176,6 +175,12 @@ class Map extends React.Component {
                     const featureId = feature.getId();
                     const selectedInterviewer = interviewers.find(int => int.id === featureId);
                     const edit = "<svg class=\"MuiSvgIcon-root\" focusable=\"false\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" role=\"presentation\"><path d=\"M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z\"></path></svg>";
+                    if (!selectedInterviewer.addresses) {
+                        selectedInterviewer.addresses = [];
+                    }
+                    const objectCount = selectedInterviewer.addresses.length;
+                    const distance = Math.round(25 + Math.random() * 125); 
+                    const fuelUsage = distance / 5;
 
                     popupHeader.current.innerHTML = selectedInterviewer.name;
                     popupBody.current.innerHTML = `
@@ -185,19 +190,19 @@ class Map extends React.Component {
                         </tr>
                         <tr>
                             <td>Objekte</td>
-                            <td>3</td>
+                            <td>${objectCount}</td>
                         </tr>
                         <tr>
                             <td>Prognoositud läbisõit</td>
-                            <td>45 km</td>
+                            <td>${distance} km</td>
                         </tr>
                         <tr>
                             <td>Kütusekulu</td>
-                            <td>23 L</td>
+                            <td>${fuelUsage} L</td>
                         </tr>
                         <tr>
                             <td>Küsitleja alguspunkt</td>
-                            <td>Liblika tn 123, Huvitav küla ${edit}</td>
+                            <td>${selectedInterviewer.address} ${edit}</td>
                         </tr>`;
 
                     localOverlay.setPosition(selectedInterviewer.coordinates);

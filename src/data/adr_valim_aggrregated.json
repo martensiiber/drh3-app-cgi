@@ -3,24 +3,32 @@
         "uuring": "ESS",
         "intervjueerimisealgus": "01.10.2018",
         "intervjueerimise_lopp": "31.12.2018",
-        "interviewers": 32,
+        "interviewers": 3091,
         "is_complete": false,
-        "progress": "19/200"
+        "progress": "923/3091"
     },
     {
         "uuring": "ETU",
         "intervjueerimisealgus": "04.03.2018",
         "intervjueerimise_lopp": "18.03.2018",
-        "interviewers": 16,
+        "interviewers": 8648,
         "is_complete": true,
-        "progress": "54/54"
+        "progress": "8648/8648"
     },
     {
         "uuring": "LEU",
         "intervjueerimisealgus": "09.12.2018",
         "intervjueerimise_lopp": "05.02.2019",
-        "interviewers": 23,
+        "interviewers": 766,
         "is_complete": false,
-        "progress": "10/105"
+        "progress": "237/766"
+    },
+    {
+        "uuring": "KOU",
+        "intervjueerimisealgus": "01.02.2018",
+        "intervjueerimise_lopp": "31.03.2018",
+        "interviewers": 2380,
+        "is_complete": false,
+        "progress": "837/2380"
     }
 ]
