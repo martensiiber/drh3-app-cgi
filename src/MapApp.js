@@ -81,23 +81,21 @@ const splitAddresses = (addresses, interviewers) => {
     return interviewersCopy;
 }
 
-const CAP = 500;
-
 const prepareAddresses = (addresses) => {
-    console.log("Starting preparing addresses.")
+    console.log("Starting preparing addresses.");
     const addressesPerInterview = {};
     rawData.forEach(distRow => {
         if (addressesPerInterview[+distRow.src_id]) {
-            addressesPerInterview[+distRow.src_id].push({ id: +distRow.target_id, distance: +distRow.agg_cost });
+            addressesPerInterview[+distRow.src_id].push({ id: +distRow.target_id, distance: +distRow.round });
         } else {
-            addressesPerInterview[+distRow.src_id] = [{ id: +distRow.target_id, distance: +distRow.agg_cost }]
+            addressesPerInterview[+distRow.src_id] = [{ id: +distRow.target_id, distance: +distRow.round }]
         }
     });
     Object.values(addressesPerInterview).forEach((list) =>
         list.sort((a, b) => a.distance - b.distance)
     );
     
-    console.log("Finished preparing addresses.")
+    console.log("Finished preparing addresses.");
     return addressesPerInterview;
 }
 
@@ -110,22 +108,23 @@ const divideAddresses = (addressesPerSurvey, interviewers) => {
     const abcdef = Object.keys(addressesPerSurvey).map(a=>+a);
     let keys = interviewers.map(a => a.id).filter(a=> abcdef.includes(a));//Object.keys(addressesPerSurvey); // list of strs
     let counter = 0;
+    const CAP = 450;
+
+    keys.forEach(key => dividedAreas[key] = []);
 
     while (keys.length !== 0) {
         keys.forEach(key => {
             const address = addressesPerSurvey[key][counter]; // addressil ainult id ja kaugus väli, puudub from city, too much calc to add
             if (!usedAddresses.has(address.id)) { // && address.fromCity === interviewers[key].fromCity 
-                if (dividedAreas[key]) {
-                    dividedAreas[key].push(address.id);
-                } else {
-                    dividedAreas[key] = [address.id]
-                }
+                dividedAreas[key].push(address.id);
                 usedAddresses.add(address.id);
             }
         });
         counter += 1;
+        keys = keys.filter((key) => dividedAreas[key].length < CAP);
         keys = keys.filter((key) => counter < addressesPerSurvey[key].length);
-        //keys = keys.filter((key) => dividedAreas[key].length < CAP);
+        
+        //keys = keys.filter((key) => );
     }
     console.log("Finishing dividing addresses.");
     return dividedAreas;
