@@ -63,7 +63,6 @@ function EnhancedTableHead(props) {
                     <TableCell
                         key={headCell.id}
                         align={headCell.numeric ? 'right' : 'left'}
-                        padding={headCell.disablePadding ? 'none' : 'default'}
                         sortDirection={orderBy === headCell.id ? order : false}
                     >
                         <TableSortLabel
@@ -210,7 +209,7 @@ export default function InfoTable() {
                                             tabIndex={-1}
                                             key={key}
                                         >
-                                            <TableCell component="th" id={labelId} scope="row" padding="none">
+                                            <TableCell component="th" id={labelId} scope="row">
                                                 {row.uuring}
                                             </TableCell>
                                             <TableCell>{row.intervjueerimisealgus}</TableCell>
