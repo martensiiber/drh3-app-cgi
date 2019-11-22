@@ -67,7 +67,7 @@ const MapSettings = ({
             </List>
 
             <div className="interviewers-settings__confirm">
-                <Link to={"/"} className="interviewers-settings__confirm-button">Kinnita</Link>
+                <Link to={{pathname: "/tables", state: {fromMap: true}}} className="interviewers-settings__confirm-button">Kinnita</Link>
             </div>
         </div>
     );

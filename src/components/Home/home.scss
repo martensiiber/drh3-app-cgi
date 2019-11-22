@@ -1,0 +1,56 @@
+.home-page {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+
+
+  background: #B22F16 url(../../img/bg.png) no-repeat;
+  background-size: 100% 100%;
+
+  &__logo {
+    width: 100%;
+    max-width: 376px;
+    height: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    img {
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  &__content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+
+    h1 {
+      font-weight: 300;
+      font-size: 96px;
+      text-transform: uppercase;
+      margin: 0 0 55px 0;
+      line-height: 1;
+      padding: 0;
+      text-align: center;
+      color: #fff;
+    }
+
+    &-action {
+      border-radius: 20px;
+      background-color: #fff;
+      font-size: 20px;
+      line-height: 19px;
+      color: #931B03;
+      text-decoration: none;
+      padding: 5px 30px;
+
+      .MuiSvgIcon-root {
+        font-size: .9rem !important;
+      }
+    }
+  }
+
+}
