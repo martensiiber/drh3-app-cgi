@@ -9,14 +9,15 @@ import rawAddresses from './data/adr_valim_xy_aggr_cityurban.json';
 
 import rawInterviewers2 from './data/kysitlejad_cityurban_v2.json';
 
-let rawData = []
-for (let index = 1; index <= 56; index++) {
-    try {
-        console.log(index);
-        const file = require(`./data/all_new_adr/src_id_${index}_to_adr.json`);
-        rawData = rawData.concat(file);
-    } catch {}
-}
+let rawData = require(`./data/all_adr_all_notnull.json`);
+// let rawData = []
+// for (let index = 1; index <= 56; index++) {
+//     try {
+//         const file = require(`./data/all_new_adr/src_id_${index}_to_adr.json`);
+//         rawData = rawData.concat(file);
+//     } catch {}
+// }
+// console.log(rawData.length);
 
 
 // Temporary transformation
@@ -34,20 +35,16 @@ const intersectingZones = interviewers.map((interviewer) => ({
     id: interviewer.id,
     distance: Math.random() * 1500,
 }));
-console.time("uslow?");
+
 const addresses = rawAddresses
     .filter((address) => address.adr_xy && address.adr_xy.coordinates)
     .map((address) => ({
         id: +address.adr_id,
         address: '',
         coordinates: address.adr_xy.coordinates,
-        //intersectingZones: rawData
-        //    .filter(data => data.target_id === address.adr_id)
-        //    .map(data => ({ id: data.src_id, distance: data.agg_cost })),
         isVisited: address.is_visited,
         fromCity: address.linnalinemaaline === 'linnaline',
     }));
-console.timeEnd("uslow?");
 
 const findInterviewerById = (interviewers, address, zone) => {
     return interviewers
@@ -89,8 +86,6 @@ const CAP = 500;
 const prepareAddresses = (addresses) => {
     console.log("Starting preparing addresses.")
     const addressesPerInterview = {};
-    addresses
-        .filter(address => address.distance !== null);
     rawData.forEach(distRow => {
         if (addressesPerInterview[+distRow.src_id]) {
             addressesPerInterview[+distRow.src_id].push({ id: +distRow.target_id, distance: +distRow.agg_cost });
@@ -118,8 +113,8 @@ const divideAddresses = (addressesPerSurvey, interviewers) => {
 
     while (keys.length !== 0) {
         keys.forEach(key => {
-            const address = addressesPerSurvey[key][counter];
-            if (!usedAddresses.has(address.id)) {
+            const address = addressesPerSurvey[key][counter]; // addressil ainult id ja kaugus väli, puudub from city, too much calc to add
+            if (!usedAddresses.has(address.id)) { // && address.fromCity === interviewers[key].fromCity 
                 if (dividedAreas[key]) {
                     dividedAreas[key].push(address.id);
                 } else {
@@ -185,7 +180,6 @@ class MapApp extends React.Component {
             // Interviewers changed
             const selectedInterviewers = this.state.interviewers.filter(interviewer => interviewer.selected);
             // const addressedInterviewers = splitAddresses(this.state.addresses, selectedInterviewers);
-            //const preparedAddresses = ;
 
             const dividedAddresses = divideAddresses(this.state.preparedAddresses, selectedInterviewers);
             const addressedInterviewers = splitAddresses2(selectedInterviewers, dividedAddresses);
