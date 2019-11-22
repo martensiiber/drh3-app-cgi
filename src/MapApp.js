@@ -9,16 +9,7 @@ import rawAddresses from './data/adr_valim_xy_aggr_cityurban.json';
 
 import rawInterviewers2 from './data/kysitlejad_cityurban_v2.json';
 
-let rawData = require(`./data/all_adr_all_notnull.json`);
-// let rawData = []
-// for (let index = 1; index <= 56; index++) {
-//     try {
-//         const file = require(`./data/all_new_adr/src_id_${index}_to_adr.json`);
-//         rawData = rawData.concat(file);
-//     } catch {}
-// }
-// console.log(rawData.length);
-
+import rawData from './data/all_adr_all_notnull.json';
 
 // Temporary transformation
 const interviewers = rawInterviewers2
@@ -43,8 +34,12 @@ const addresses = rawAddresses
         address: '',
         coordinates: address.adr_xy.coordinates,
         isVisited: address.is_visited,
-        fromCity: address.linnalinemaaline === 'linnaline',
+        fromCity: address.linnalinemaaline === 'linnaline' || address.linnalinemaaline === null,
     }));
+
+
+const addrCityMap = {}
+addresses.forEach(addr => addrCityMap[addr.id] = addr.fromCity);
 
 const findInterviewerById = (interviewers, address, zone) => {
     return interviewers
@@ -82,7 +77,6 @@ const splitAddresses = (addresses, interviewers) => {
 }
 
 const prepareAddresses = (addresses) => {
-    console.log("Starting preparing addresses.");
     const addressesPerInterview = {};
     rawData.forEach(distRow => {
         if (addressesPerInterview[+distRow.src_id]) {
@@ -94,19 +88,18 @@ const prepareAddresses = (addresses) => {
     Object.values(addressesPerInterview).forEach((list) =>
         list.sort((a, b) => a.distance - b.distance)
     );
-    
-    console.log("Finished preparing addresses.");
     return addressesPerInterview;
 }
 
 const divideAddresses = (addressesPerSurvey, interviewers) => {
-    console.log("Starting dividing addresses.")
     const usedAddresses = new Set();
     const dividedAreas = {};
     
+    const intCity = {};
+    interviewers.forEach(i => intCity[i.id] = i.fromCity);
     // do not touch
     const abcdef = Object.keys(addressesPerSurvey).map(a=>+a);
-    let keys = interviewers.map(a => a.id).filter(a=> abcdef.includes(a));//Object.keys(addressesPerSurvey); // list of strs
+    let keys = interviewers.map(a => a.id).filter(a=> abcdef.includes(a));
     let counter = 0;
     const CAP = 450;
 
@@ -114,19 +107,17 @@ const divideAddresses = (addressesPerSurvey, interviewers) => {
 
     while (keys.length !== 0) {
         keys.forEach(key => {
-            const address = addressesPerSurvey[key][counter]; // addressil ainult id ja kaugus väli, puudub from city, too much calc to add
-            if (!usedAddresses.has(address.id)) { // && address.fromCity === interviewers[key].fromCity 
-                dividedAreas[key].push(address.id);
-                usedAddresses.add(address.id);
+            const adrid = addressesPerSurvey[key][counter].id;
+            console.log(addrCityMap[adrid] === intCity[key], addrCityMap[adrid], intCity[key]);
+            if (!usedAddresses.has(adrid) && addrCityMap[adrid] === intCity[key] ) { 
+                dividedAreas[key].push(adrid);
+                usedAddresses.add(adrid);
             }
         });
         counter += 1;
         keys = keys.filter((key) => dividedAreas[key].length < CAP);
         keys = keys.filter((key) => counter < addressesPerSurvey[key].length);
-        
-        //keys = keys.filter((key) => );
     }
-    console.log("Finishing dividing addresses.");
     return dividedAreas;
 };
 
