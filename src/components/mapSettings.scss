@@ -42,8 +42,7 @@
     }
 
     &-list {
-        //max-height: calc(100vh - 101px);
-        max-height: 40vh;
+        max-height: calc(100vh - 350px);
         overflow: auto;
 
         .MuiListItem-gutters {
