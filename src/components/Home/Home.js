@@ -11,7 +11,7 @@ const Home = () => {
                 <img src={logo} alt="Satikas"/>
             </div>
             <div className="home-page__content">
-                <h1>Satikas</h1>
+                <h1>Statikas</h1>
 
                 <Link to={"/tables"} className="home-page__content-action">
                     Sisene <ArrowForwardIosIcon fontSize='small'/>
