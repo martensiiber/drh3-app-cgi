@@ -7,13 +7,23 @@ import TopBar from "./components/TopBar/TopBar";
 import rawInterviewers from './data/kysitlejad_cityurban.json';
 import rawAddresses from './data/adr_valim_xy_aggr_cityurban.json';
 
+import rawInterviewers2 from './data/kysitlejad_cityurban_v2.json';
+
+let rawData = []
+for (let index = 0; index < 56; index++) {
+    try {
+        const file = require(`./data/src_id_${index}_to_adr.json`);
+        rawData = rawData.concat(file);
+    } catch {}
+}
+
 // Temporary transformation
-const interviewers = rawInterviewers
+const interviewers = rawInterviewers2
     .filter((interviewer) => interviewer.adr_xy && interviewer.adr_xy.coordinates)
     .map((interviewer) => ({
-        id: interviewer.sisendaadressi_id,
+        id: interviewer.kysitleja_id,
         name: interviewer.nimi,
-        selected: interviewer.linn_vald === 'Tallinn',
+        selected: true, // interviewer.linn_vald === 'Tallinn',
         fromCity: interviewer.linnalinemaaline === 'linnaline',
         coordinates: interviewer.adr_xy.coordinates
     }));
@@ -31,7 +41,9 @@ const addresses = rawAddresses
         id: +address.adr_id,
         address: '',
         coordinates: address.adr_xy.coordinates,
-        intersectingZones,
+        intersectingZones: rawData
+            .filter(data => data.target_id === address.adr_id)
+            .map(data => ({ id: data.src_id, distance: data.agg_cost })),
         isVisited: address.is_visited,
         fromCity: address.linnalinemaaline === 'linnaline',
     }));
@@ -73,6 +85,75 @@ const splitAddresses = (addresses, interviewers) => {
     return interviewersCopy;
 }
 
+const CAP = 500;
+
+const prepareAddresses = (addresses) => {
+    const addressesPerInterview = {};
+    addresses
+        .filter(address => address.distance !== null)
+        .forEach((address) => {
+            address.intersectingZones.forEach((zone) => {
+                if (addressesPerInterview[zone.id]) {
+                    addressesPerInterview[zone.id].push({ id: address.id, distance: zone.distance });
+                } else {
+                    addressesPerInterview[zone.id] = [{ id: address.id, distance: zone.distance }]
+                }
+            })
+    });
+    Object.values(addressesPerInterview).forEach((list) =>
+        list.sort((a, b) => a.distance - b.distance)
+    );
+    return addressesPerInterview;
+}
+
+const divideAddresses = (addressesPerSurvey) => {
+    const usedAddresses = new Set();
+    const dividedAreas = {};
+    let keys = Object.keys(addressesPerSurvey);
+    let counter = 0;
+
+    while (keys.length !== 0) {
+        for (const interviewId of keys) {
+            const address = addressesPerSurvey[interviewId][counter];
+            // if (!usedAddresses.has(address.id)) {
+            if (!address.used) {
+                if (dividedAreas[interviewId]) {
+                    dividedAreas[interviewId].push(address.id);
+                } else {
+                    dividedAreas[interviewId] = [address.id]
+                }
+                // usedAddresses.add(address.id);
+                address.used = true;
+            }
+        };
+        counter += 1;
+        keys = keys.filter((key) => counter < addressesPerSurvey[key].length);
+        keys = keys.filter((key) => Object.keys(dividedAreas[key]).length < CAP);
+    }
+    return dividedAreas;
+};
+
+const splitAddresses2 = (interviewers, dividedAddresses) => {
+    const interviewersCopy = cloneDeep(interviewers);
+
+    interviewersCopy.forEach((interviewer) => {
+        interviewer.addresses = [];
+    });
+    Object.keys(dividedAddresses).forEach((interviewId) => {
+        const interviewer = interviewersCopy.find(interviewer => interviewer.id === +interviewId);
+        if (!interviewer) return;
+        dividedAddresses[interviewId].forEach(addressId => {
+            const address = addresses.find(address => address.id === addressId);
+            if (!address) return;
+            interviewer.addresses.push({
+                id: address.id,
+                coordinates: address.coordinates,
+            });
+        })
+    });
+    return interviewersCopy;
+}
+
 class MapApp extends React.Component {
     constructor(props) {
         super(props);
@@ -99,7 +180,12 @@ class MapApp extends React.Component {
         if (prevState.interviewers !== this.state.interviewers) {
             // Interviewers changed
             const selectedInterviewers = this.state.interviewers.filter(interviewer => interviewer.selected);
-            const addressedInterviewers = splitAddresses(this.state.addresses, selectedInterviewers);
+            // const addressedInterviewers = splitAddresses(this.state.addresses, selectedInterviewers);
+
+            const preparedAddresses = prepareAddresses(this.state.addresses);
+
+            const dividedAddresses = divideAddresses(preparedAddresses);
+            const addressedInterviewers = splitAddresses2(selectedInterviewers, dividedAddresses);
             this.setState({addressedInterviewers});
         }
     }
