@@ -19,8 +19,10 @@ import { register } from 'ol/proj/proj4';
 import MapStyles from '../MapStyles';
 import { toLonLat, fromLonLat } from 'ol/proj';
 import * as concaveman from 'concaveman';
+import EditIcon from '@material-ui/icons/Edit';
 
 import 'ol/ol.css';
+import './map.scss';
 
 const CONCAVITY = 6;
 
@@ -173,6 +175,7 @@ class Map extends React.Component {
                 if(!!feature) {
                     const featureId = feature.getId();
                     const selectedInterviewer = interviewers.find(int => int.id === featureId);
+                    const edit = "<svg class=\"MuiSvgIcon-root\" focusable=\"false\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" role=\"presentation\"><path d=\"M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z\"></path></svg>";
 
                     popupHeader.current.innerHTML = selectedInterviewer.name;
                     popupBody.current.innerHTML = `
@@ -194,7 +197,7 @@ class Map extends React.Component {
                         </tr>
                         <tr>
                             <td>Küsitleja alguspunkt</td>
-                            <td>Liblika tn 123</td>
+                            <td>Liblika tn 123, Huvitav küla ${edit}</td>
                         </tr>`;
 
                     localOverlay.setPosition(selectedInterviewer.coordinates);
@@ -237,9 +240,8 @@ class Map extends React.Component {
                 <div id="popup" className="ol-popup" ref={this.popup}>
                     <a href="#" id="popup-closer" className="ol-popup-closer" ref={this.closer}></a>
                     <div id="popup-content">
-                        <div id="popup-header" ref={this.popupHeader}></div>
-                        <hr/>
-                        <table id="popup-body" ref={this.popupBody} cellSpacing="5px"></table>
+                        <div id="popup-header" className="popup__header" ref={this.popupHeader}></div>
+                        <table id="popup-body" className="popup__table" ref={this.popupBody} cellSpacing="5px"></table>
                     </div>
                 </div>
             </React.Fragment>

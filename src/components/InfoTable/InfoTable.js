@@ -102,13 +102,13 @@ const useStyles = makeStyles(theme => ({
     },
     paper: {
         width: '100%',
-        padding: '0 20px',
         marginBottom: theme.spacing(2),
     },
     table: {
         minWidth: 750,
     },
     tableWrapper: {
+        padding: '0 20px',
         overflowX: 'auto',
     },
     visuallyHidden: {
@@ -220,9 +220,8 @@ export default function InfoTable() {
                                                 {row.is_complete ? 'Tehtud' : 'Teostamisel'}
                                             </TableCell>
                                             <TableCell>{row.progress}</TableCell>
-                                            <TableCell>
+                                            <TableCell align="right">
                                                 <Link to="/map" className="info-table__link">Vaata kaardil</Link>
-                                                {/*<a href="#" className="info-table__link"></a>*/}
                                             </TableCell>
                                         </TableRow>
                                     );
