@@ -77,7 +77,9 @@ const splitAddresses = (addresses, interviewers) => {
 
 const prepareAddresses = (addresses) => {
     const addressesPerInterview = {};
+    const filteredAddressIds = addresses.map(address => address.id);
     rawData.forEach(distRow => {
+        if (!filteredAddressIds.includes(+distRow.target_id)) return;
         if (addressesPerInterview[+distRow.src_id]) {
             addressesPerInterview[+distRow.src_id].push({ id: +distRow.target_id, distance: +distRow.round });
         } else {
